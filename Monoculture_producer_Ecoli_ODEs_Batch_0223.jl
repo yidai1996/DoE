@@ -1,4 +1,4 @@
-using Plots, JuMP, Ipopt, DifferentialEquations, NLsolve, BenchmarkTools
+using Plots, JuMP, Ipopt, DifferentialEquations, NLsolve
 
 function loadProcessData()
     global mu_max=1.7 #h^-1 from David's thesis(meeting slides from Prof.Lin) 1.7
