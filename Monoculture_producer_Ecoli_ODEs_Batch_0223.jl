@@ -34,6 +34,7 @@ function loadProcessData()
 end
 
 function EcoliGrowth(X0,S0,P0,tspan)
+    loadProcessData()
     global tt1,X1,S1,P1=ODEStep(X0,S0,P0,tspan)
     global tt,Xt,St,Pt,O2=ODEStep(X0,S0,P0,O20,tspan)
     # global dxdt=zeros(size(tt1)[1])

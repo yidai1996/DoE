@@ -31,6 +31,7 @@ function loadProcessData()
 end
 
 function AllGrowth(X0,S0,P0,tspan) # Continuous flow
+    loadProcessData()
     global tt1,X1,S1,P1=Tripartite(D0,E0,A0,S0,N20,O20,CO20,P0,tspan)
     # E,A,S mean E.coli, Av, and Se
     # global dxdt=zeros(size(tt1)[1])

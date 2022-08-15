@@ -2,15 +2,13 @@
 using Plots, JuMP, Ipopt, DifferentialEquations, NLsolve
 
 function loadProcessData()
-    global mu_max=1.7 #h^-1 from David's thesis(meeting slides from Prof.Lin) 1.7
+    global mu_maxA=1.7 #h^-1 from David's thesis(meeting slides from Prof.Lin) 1.7
     global ms=1 # gsubstrate/gbiomass/h +-0.0008 h^-1 from David's thesis  substrate used for maintenence
     global T0=303 #K
     global pH=7 # from Sofia medium
     global kd=0.003 #h^-1 cell death rate from David's thesis
     global ks=0.1 # gbiomass/L +-0.004 from David's thesis
     # global ki=0.3 # my guessing
-    global n=4.86
-    global P_star=0.20
     global ysp_g=0.3 # gbiomass/gsubstrate from Minty 13 0.322
     global ysp_m=0.2 # gbiomass/gsubstrate from David's thesis, 0.409 at the first try
     # global ysx=0.06 #http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
@@ -30,6 +28,7 @@ function loadProcessData()
 end
 
 function EcoliGrowth(X0,S0,P0,tspan)
+    loadProcessData()
     global tt1,X1,S1,P1=ODEStep(X0,S0,P0,tspan)
     # global dxdt=zeros(size(tt1)[1])
     # global dPdt=zeros(size(tt1)[1])
@@ -58,8 +57,8 @@ end
 function ODEStep(X,S,P,tspan) # Use one ODE solver to solve the whole system
     f(y,p,t)=[(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2]) - kd)*y[1],
          -max(y[2],0)/y[2]*(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])/ysx + ms)*y[1],
-         0]
-         # (max((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1],0)/((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2]) - kd)*y[1])*mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])*ysp_g/ysx + (1-max((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1],0)/(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1])*ysp_m*ms)*y[1]] # X,S,P
+         (max((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1],0)/((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2]) - kd)*y[1])*mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])*ysp_g/ysx + (1-max((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1],0)/(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1])*ysp_m*ms)*y[1]] # X,S,P
+         # X is Av, S is sucrose, P is ammonia
     prob=ODEProblem(f,[X,S,P],(0.0,tspan))
     # PositiveDomain(S=nothing;save=true,abstol=nothing,scalefactor=nothing)
     soln=DifferentialEquations.solve(prob,Rosenbrock23())
