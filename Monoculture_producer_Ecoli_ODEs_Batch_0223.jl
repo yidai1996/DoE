@@ -24,22 +24,33 @@ function loadProcessData()
     # global Xs=0.7 # g/L set point of cell concentration
     # global Ps=0.25 # g/L
     # global Ss=5.0
+    global kO2=0.1 # guessing
     global M_O2=16 # g/mol
-    global yox=
-    global mo=
-    global kLaO=
-    global xO2_sat=
-    global tspan=100
+    global yox=1.017
+    global mo=0.01 # guessing
+    global kLaO=2.766*60 # 1/h # https://www.sciencedirect.com/science/article/pii/S0032959200002727
+    global xO2_sat=7.5/16/1000 # mol/L https://www.waterboards.ca.gov/water_issues/programs/swamp/docs/cwt/guidance/3110en.pdf
+    global O20=xO2_sat
+    global tspan=100 # h
     println("Parameters Loaded!")
 end
 
-function EcoliGrowth(X0,S0,P0,tspan)
+function EcoliGrowth()
     loadProcessData()
-    global tt1,X1,S1,P1=ODEStep(X0,S0,P0,tspan)
+    # global tt1,X1,S1,P1=ODEStep(X0,S0,P0,tspan)
     global tt,Xt,St,Pt,O2=ODEStep(X0,S0,P0,O20,tspan)
+    plot(tt1,X1/0.396,title="Microbial concentration profile",xaxis="Time(hr)",yaxis="OD600",label=false)
+    # savefig("0316_X_soln_S0_2.png")
+    # plot(tt1,S1,title="Substrate concentration profile",xaxis="Time(hr)",yaxis="S(g/L)",label=false)
+    # savefig("0316_S_soln_batch_P_star_0.05.png")
+    # plot(tt1,P1,title="Product concentration profile",xaxis="Time(hr)",yaxis="P(g/L)",label=false)
+    # savefig("0316_P_soln_batch_P_star_0.05.png")
+
+    # Calculate growth/consuming rate
     # global dxdt=zeros(size(tt1)[1])
     # global dPdt=zeros(size(tt1)[1])
     # global dSdt=zeros(size(tt1)[1])
+    # global dOdt=zeros(size(tt1)[1])
     # for i=1:size(tt1)[1]
     #     dxdt[i]=(mu_max*S1[i]*(max(1-P1[i]/P_star,0.0))^n/(ks+S1[i]) - kd)*X1[i]
     # end
@@ -50,14 +61,8 @@ function EcoliGrowth(X0,S0,P0,tspan)
     #     zz=(mu_max*S1[i]*(max(1-P1[i]/P_star,0.0))^n/(ks+S1[i])-kd)*X1[i]
     #     dPdt[i]=(max(zz,0)/zz*mu_max*S1[i]*(max(1-P1[i]/P_star,0.0))^n/(ks+S1[i])*ysp_g/ysx + (1-max(zz,0)/zz)*ysp_m*ms)*X1[i]
     # end
-    # plot(tt1,X1/0.396,title="Microbial concentration profile",xaxis="Time(hr)",yaxis="OD600",label=false)
-    # savefig("0316_X_soln_S0_2.png")
     # plot(tt1,dxdt,title="Microbial growth rate",xaxis="Time(hr)",yaxis="dXdt(g/L/h)",label=false)
-    # plot(tt1,S1,title="Substrate concentration profile",xaxis="Time(hr)",yaxis="S(g/L)",label=false)
-    # savefig("0316_S_soln_batch_P_star_0.05.png")
     # plot(tt1,dSdt,title="Substrate change rate",xaxis="Time(hr)",yaxis="dSdt(g/L/h)",label=false)
-    # plot(tt1,P1,title="Product concentration profile",xaxis="Time(hr)",yaxis="P(g/L)",label=false)
-    # savefig("0316_P_soln_batch_P_star_0.05.png")
     # plot(tt1,dPdt,title="Product rate",xaxis="Time(hr)",yaxis="dPdt(g/L/h)",label=false)
 end
 
@@ -82,5 +87,5 @@ function ODEStep(X,S,P,O2,tspan) # Use one ODE solver to solve the whole system
     # plot(a,A[1,:],title="Microbial concentration profile",xaxis="Time(hr)",yaxis="X(g/L)",label=false)
     # plot(a,A[2,:],title="Substrate concentration profile",xaxis="Time(hr)",yaxis="S(g/L)",label=false)
     # plot(a,A[3,:],title="Product concentration profile",xaxis="Time(hr)",yaxis="P(g/L)",label=false)
-    return a,A[1,:],A[2,:],A[3,:],A[3,:]
+    return a,A[1,:],A[2,:],A[3,:],A[4,:]
 end
