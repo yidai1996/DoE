@@ -4,33 +4,35 @@ using Plots, JuMP, Ipopt, DifferentialEquations, NLsolve
 
 function loadProcessData()
     global mu_maxE=1.7 #h^-1 from David's thesis(meeting slides from Prof.Lin) 1.7
-    global mu_maxA=1.7 #h^-1
-    global mu_maxS=1.7 #h^-1
-    global msE=1 # gsubstrate/gbiomass/h +-0.0008 h^-1 from David's thesis  substrate used for maintenence
-    global msA=1 # gsubstrate/gbiomass/h
-    global msS=1 # gsubstrate/gbiomass/h
+    global mu_maxA=0.34 #h^-1 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5478974/
+    # global mu_maxA=0.091 #h^-1 https://www.sciencedirect.com/science/article/pii/S1369703X02001766
+    # global mu_maxS=0.0504 #h^-1 https://onlinelibrary.wiley.com/doi/full/10.1002/cjce.22154
+    global mu_maxS=0.5 #h^-1 https://onlinelibrary.wiley.com/doi/full/10.1002/cjce.22154
+    global msE=0.1 # gsubstrate/gbiomass/h +-0.0008 h^-1 from David's thesis  substrate used for maintenence
+    global msA=0.1 # gsubstrate/gbiomass/h
+    global msS=0.1 # gsubstrate/gbiomass/h
     global T0=303 #K
     global pH=7 # from Sofia medium
     global kdE=0.003 #h^-1 cell death rate from David's thesis
     global kdA=0.003 #h^-1
     global kdS=0.003 #h^-1
     global ksE=0.1 # gbiomass/L +-0.004 from David's thesis
-    global ksA=0.1 # gbiomass/L
-    global ksS=0.1 # gbiomass/L
+    global ksA=0.31 # gbiomass/L https://www.sciencedirect.com/science/article/pii/S1369703X02001766
+    global ksS=0.22 # gbiomass/L https://onlinelibrary.wiley.com/doi/full/10.1111/j.1529-8817.2005.04063.x
     global ksE_NH4=0.1
     # global ki=0.3 # my guessing
     global n=4.86
     global P_star=0.20
     global ysp_g=0.3 # gbiomass/gsubstrate from Minty 13 0.322
     global ysp_m=0.2 # gbiomass/gsubstrate from David's thesis, 0.409 at the first try
-    global yspA=0.2 #
-    global yspS=0.2 #
+    global yspA=0.9 # https://microbialcellfactories.biomedcentral.com/track/pdf/10.1186/s12934-020-01362-9.pdf
+    global yspS=2 #
     # global ysx=0.06 #http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     # global ysx=1.017 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     # global ysx=3 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     global ysxE=1.017 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
-    global ysxA=1.017 #
-    global ysxS=1.017 #
+    global ysxA=0.160 # https://www.researchgate.net/figure/Growth-kinetics-of-Azotobacter-vinelandii-in-medium-before-and-after-optimization_tbl2_301753155
+    global ysxS=0.17 # https://www.sciencedirect.com/science/article/pii/S0960852406004792
     # global D0= 0.68 # h^-1 initial dilusion rate
     global A0=0.01 # g/l initial substrate feeding concentration
     global E0=0.01 # g/L initial cell concentration 0.7g/L is from Figure 2.4 on Page 34 of David's thesis
@@ -60,18 +62,18 @@ function AllGrowth() # Continuous flow
     loadProcessData()
     global tt,Et,At,St,Pt,Ct,Nt=Tripartite(D0,E0,A0,S0,N0,C0,P0,tspan)
     # E,A,S mean E.coli, Av, and Se
-    global dEdt=zeros(size(tt1)[1])
-    global dAdt=zeros(size(tt1)[1])
-    global dSdt=zeros(size(tt1)[1])
-    global dCdt1=zeros(size(tt1)[1])
-    global dCdt2=zeros(size(tt1)[1])
-    global dCdt3=zeros(size(tt1)[1])
-    global dNdt1=zeros(size(tt1)[1])
-    global dNdt2=zeros(size(tt1)[1])
-    global dNdt3=zeros(size(tt1)[1])
-    global dPdt=zeros(size(tt1)[1])
+    global dEdt=zeros(size(tt)[1])
+    global dAdt=zeros(size(tt)[1])
+    global dSdt=zeros(size(tt)[1])
+    global dCdt1=zeros(size(tt)[1])
+    global dCdt2=zeros(size(tt)[1])
+    global dCdt3=zeros(size(tt)[1])
+    global dNdt1=zeros(size(tt)[1])
+    global dNdt2=zeros(size(tt)[1])
+    global dNdt3=zeros(size(tt)[1])
+    global dPdt=zeros(size(tt)[1])
     for i=1:size(tt)[1]
-        dEdt[i]=mu_maxE*Ct[i]*(max(1-Pt[i]/P_star,0.0))^n/(ksE+Ct[i])*Nt[i]/(ksE_NH4+Nt[i]) - kdE)*Et[i]
+        dEdt[i]=(mu_maxE*Ct[i]*(max(1-Pt[i]/P_star,0.0))^n/(ksE+Ct[i])*Nt[i]/(ksE_NH4+Nt[i]) - kdE)*Et[i]
     end
     plot(tt,dEdt,title="Growth rate of E.coli",xaxis="Time(hr)",yaxis="g/L/h",label=false)
     savefig("E.coliGrowthRate_test.png")
@@ -90,8 +92,8 @@ function AllGrowth() # Continuous flow
 
     for i=1:size(tt)[1]
         dCdt1[i]= - (mu_maxE*Ct[i]*(max(1-Pt[i]/P_star,0.0))^n/(ksE+Ct[i])*Nt[i]/(ksE_NH4+Nt[i])/ysxE + msE)*Et[i]
-        dCdt2[i]= - ((mu_maxA*Ct[i]/(ksA+Ct[i]) - kdA)/ysxA+msA)*At[i] - saiout/V
-        dCdt3[i]= + yspS*(mu_maxS*Nt[i]/(ksS+Nt[i]) - kdS)/ysxS)
+        dCdt2[i]= - ((mu_maxA*Ct[i]/(ksA+Ct[i]) - kdA)/ysxA+msA)*At[i]
+        dCdt3[i]= + yspS*(mu_maxS*Nt[i]/(ksS+Nt[i]) - kdS)/ysxS
     end
     plot(tt,dCdt1,title="Sucrose consumed/produced rate",xaxis="Time(hr)",yaxis="g/L/h",label="Consumed by E.coli")
     plot!(tt,dCdt2,xaxis="Time(hr)",yaxis="g/L/h",label="Consumed by Av")
@@ -99,19 +101,21 @@ function AllGrowth() # Continuous flow
     savefig("Sucrose consumedandproduced rate_test.png")
 
     for i=1:size(tt)[1]
-        dNdt1[i]= yspA*(mu_maxA*Ct[i]/(ksA+Ct[i]) - kdA)/ysxA
+        dNdt1[i]= yspA*(mu_maxA*Ct[i]/(ksA+Ct[i]) - kdA)*At[i]/ysxA
         dNdt2[i]= - (mu_maxE*Ct[i]*(max(1-Pt[i]/P_star,0.0))^n/(ksE+Ct[i])*Nt[i]/(ksE_NH4+Nt[i])/ysxE + msE)*Et[i]
-        dNdt3[i]= - ((mu_maxS*Nt[i]/(ksS+Nt[i]) - kdS)/ysxS+msS)*y[3]-saiout/V)
+        dNdt3[i]= - ((mu_maxS*Nt[i]/(ksS+Nt[i]) - kdS)/ysxS+msS)*St[i]
     end
     plot(tt,dNdt1,title="Ammonia consumed/produced rate",xaxis="Time(hr)",yaxis="g/L/h",label="Produced by Av")
     plot!(tt,dNdt2,xaxis="Time(hr)",yaxis="g/L/h",label="Consumed by E.coli")
     plot!(tt,dNdt3,xaxis="Time(hr)",yaxis="g/L/h",label="Consumed by Se")
     savefig("Ammonia consumedandproduced rate_test.png")
 
-    for i=1:size(tt1)[1]
-        zz=mu_maxE*Ct[i]*(max(1-Pt[i]/P_star,0.0))^n/(ksE+Ct[i])*Nt[i]/(ksE_NH4+Nt[i]) - kdE)*Et[i]
-        dPdt[i]=(max(zz,0)/zz*mu_maxE*Ct[i]*(max(1-Pt[i]/P_star,0.0))^n/(ksE+Ct[i])*Nt[i]/(ksE_NH4+t[i])*ysp_g/ysxE + (1-max(zz,0)/zz)*ysp_m*msE)*Et[i]]
+    for i=1:size(tt)[1]
+        zz=(mu_maxE*Ct[i]*(max(1-Pt[i]/P_star,0.0))^n/(ksE+Ct[i])*Nt[i]/(ksE_NH4+Nt[i]) - kdE)*Et[i]
+        dPdt[i]=(max(zz,0)/zz*mu_maxE*Ct[i]*(max(1-Pt[i]/P_star,0.0))^n/(ksE+Ct[i])*Nt[i]/(ksE_NH4+Nt[i])*ysp_g/ysxE + (1-max(zz,0)/zz)*ysp_m*msE)*Et[i]
     end
+    plot(tt,dPdt,title="Isobutanol produced rate",xaxis="Time(hr)",yaxis="g/L/h",label=false)
+    savefig("Isobutanol produced rate_test.png")
 
     plot(tt,Et/0.396,title="E.coli concentration profile",xaxis="Time(hr)",yaxis="OD600",label=false)
     savefig("Ecoli_test.png")
@@ -134,8 +138,8 @@ function Tripartite(D,E,A,S,N,C,P,tspan) # Use one ODE solver to solve the whole
     f(y,p,t)=[(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1], # X(E.coli)
          (mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2],# X(Av)
          (mu_maxS*y[5]/(ksS+y[5]) - kdS)*y[3],# X(Se)
-         max(y[4],0)/y[4]*(-(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE + msE)*y[1] - ((mu_maxA*y[4]/(ksA+y[4]) - kdA)/ysxA+msA)*y[2]#=+saiin/V*Sin=#-saiout/V + yspS*(mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS), # Sucrose
-         max(y[5],0)/y[5]*(yspA*(mu_maxA*y[4]/(ksA+y[4]) - kdA)/ysxA - (mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE + msE)*y[1] - ((mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS+msS)*y[3]-saiout/V), # Ammonia
+         max(y[4],0)/y[4]*(-(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE + msE)*y[1] - ((mu_maxA*y[4]/(ksA+y[4]) - kdA)/ysxA+msA)*y[2] + yspS*(mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS), # Sucrose
+         max(y[5],0)/y[5]*(yspA*(mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]/ysxA - (mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE + msE)*y[1] - ((mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS+msS)*y[3]), # Ammonia
          (max((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1])*mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])*ysp_g/ysxE + (1-max((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1])*ysp_m*msE)*y[1]] # Product
 
     prob=ODEProblem(f,[E,A,S,N,C,P],(0.0,tspan))
