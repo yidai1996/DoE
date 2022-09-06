@@ -32,7 +32,7 @@ function loadProcessData()
     # global ysx=1.017 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     # global ysx=3 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     global ysxE=1.017 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
-    global ysxE_NH4=1.017 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
+    global ysxE_NH4=1.017
     global ysxA=0.160 # https://www.researchgate.net/figure/Growth-kinetics-of-Azotobacter-vinelandii-in-medium-before-and-after-optimization_tbl2_301753155
     global ysxS=0.17 # https://www.sciencedirect.com/science/article/pii/S0960852406004792
     # global D0= 0.68 # h^-1 initial dilusion rate
@@ -54,17 +54,25 @@ function loadProcessData()
     global kLaO=2.766*60 # 1/h # https://www.sciencedirect.com/science/article/pii/S0032959200002727
     global xO2_sat=7.5/16/1000 # mol/L https://www.waterboards.ca.gov/water_issues/programs/swamp/docs/cwt/guidance/3110en.pdf
     global O20=xO2_sat
-    global tspan=100
-    global saiin=0.1  # L/min
-    global saiout=0.1
-    global V=5 #L
-    global D0=saiout/V # 0.02
+    global tspan1=72
+    global tspan2=100
+    global saiin=0.2  # L/min
+    global saioutE=0.1 # David's thesis
+    global saioutS=0.1
+    global saioutA=0.1
+    global V=0.5 #L
+    global Vt=3*V
+    global DE=saioutE/V # 0.2
+    global DA=saioutA/V # 0.2
+    global DS=saioutS/V # 0.2
+    global D0=[DE DA DS]
     println("Parameters Loaded!")
 end
 
 function AllGrowth() # Continuous flow
     loadProcessData()
-    global tt,Et,At,St,Pt,Ct,Nt=Tripartite(D0,E0,A0,S0,N0,C0,P0,tspan)
+    global tt1,At1,St1,Ct1,Nt1=Startup(D0,A0,S0,N0,C0,tspan1)
+    global tt,Et,At,St,Pt,Ct,Nt=Tripartite(D0,E0,At1[end],St1[end],Nt1[end],Ct1[end],P0,tspan2)
     # E,A,S mean E.coli, Av, and Se
     global dEdt=zeros(size(tt)[1])
     global dAdt=zeros(size(tt)[1])
@@ -135,15 +143,32 @@ function AllGrowth() # Continuous flow
     savefig("Isobutanol_test.png")
 end
 
-function Tripartite(D,E,A,S,N,C,P,tspan) # Use one ODE solver to solve the whole system
+function Startup(D,A,S,N,C,tspan1)
+    f(y,p,t)=[(mu_maxA*y[3]/(ksA+y[3]) - kdA)*y[1]-D[2]*y[1],# X(Av)
+         (mu_maxS*y[4]/(ksS+y[4]) - kdS)*y[3]-D[3]*y[2],# X(Se)
+         1/Vt*max(y[3],0)/y[3]*( - ((mu_maxA*y[3]/(ksA+y[3]) - kdA)/ysxA+msA)*y[1] + yspS*(mu_maxS*y[4]/(ksS+y[4]) - kdS)/ysxS*y[2] - (D[2]+D[3])*y[3]), # Sucrose
+         1/Vt*max(y[4],0)/y[4]*(yspA*(mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]/ysxA  - ((mu_maxS*y[4]/(ksS+y[4]) - kdS)/ysxS+msS)*y[2] - (D[2]+D[3])*y[4])] # Ammonia
+    prob=ODEProblem(f,[E,A,S,N,C,P],(0.0,tspan))
+    # PositiveDomain(S=nothing;save=true,abstol=nothing,scalefactor=nothing)
+    soln=DifferentialEquations.solve(prob,Rosenbrock23())
+    a=soln.t
+    A=Array(soln)
+    # plot(a,A[1,:],title="Microbial concentration profile",xaxis="Time(hr)",yaxis="X(g/L)",label=false)
+    # plot(a,A[2,:],title="Substrate concentration profile",xaxis="Time(hr)",yaxis="S(g/L)",label=false)
+    # plot(a,A[3,:],title="Product concentration profile",xaxis="Time(hr)",yaxis="P(g/L)",label=false)
+    return a,A[1,:],A[2,:],A[3,:],A[4,:]
+    # At,St,Ct,Nt
+end
+
+function Tripartite(D,E,A,S,N,C,P,tspan2) # Use one ODE solver to solve the whole system
     # D: dilusion rate
     # E/A/S: e.coli/Ntrigen/Carbon fixer  concentration
     # The following odes haven't been modified yet
     f(y,p,t)=[(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1]-saiout*y[1], # X(E.coli)
          (mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]-saiout*y[2],# X(Av)
          (mu_maxS*y[5]/(ksS+y[5]) - kdS)*y[3]-saiout*y[3],# X(Se)
-         max(y[4],0)/y[4]*(-(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE + msE)*y[1] - ((mu_maxA*y[4]/(ksA+y[4]) - kdA)/ysxA+msA)*y[2] + yspS*(mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS) + saiin*Cin - saiout*y[4], # Sucrose
-         max(y[5],0)/y[5]*(yspA*(mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]/ysxA - (mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE + msE)*y[1] - ((mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS+msS)*y[3]) + saiin*Nin - saiout*y[5], # Ammonia
+         max(y[4],0)/y[4]*(-(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE + msE)*y[1] - ((mu_maxA*y[4]/(ksA+y[4]) - kdA)/ysxA+msA)*y[2] + yspS*(mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS*y[3] + saiin*Cin - saiout*y[4]), # Sucrose
+         max(y[5],0)/y[5]*(yspA*(mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]/ysxA - (mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE + msE)*y[1] - ((mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS+msS)*y[3] + saiin*Nin - saiout*y[5]), # Ammonia
          (max((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1])*mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])*ysp_g/ysxE + (1-max((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1])*ysp_m*msE)*y[1] - saiout*y[6]] # Product
 
     prob=ODEProblem(f,[E,A,S,N,C,P],(0.0,tspan))
@@ -155,5 +180,5 @@ function Tripartite(D,E,A,S,N,C,P,tspan) # Use one ODE solver to solve the whole
     # plot(a,A[2,:],title="Substrate concentration profile",xaxis="Time(hr)",yaxis="S(g/L)",label=false)
     # plot(a,A[3,:],title="Product concentration profile",xaxis="Time(hr)",yaxis="P(g/L)",label=false)
     return a,A[1,:],A[2,:],A[3,:],A[6,:],A[4,:],A[5,:]
-    Et,At,St,Pt,Ct,Nt
+    # Et,At,St,Pt,Ct,Nt
 end
