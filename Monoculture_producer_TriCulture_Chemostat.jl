@@ -9,6 +9,7 @@ function loadProcessData()
     # global mu_maxS=0.0504 #h^-1 https://onlinelibrary.wiley.com/doi/full/10.1002/cjce.22154
     global mu_maxS=0.5 #h^-1 https://onlinelibrary.wiley.com/doi/full/10.1002/cjce.22154
     global msE=0.1 # gsubstrate/gbiomass/h +-0.0008 h^-1 from David's thesis  substrate used for maintenence
+    global msE_NH4=0.1 # gsubstrate/gbiomass/h
     global msA=0.1 # gsubstrate/gbiomass/h
     global msS=0.1 # gsubstrate/gbiomass/h
     global T0=303 #K
@@ -31,6 +32,7 @@ function loadProcessData()
     # global ysx=1.017 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     # global ysx=3 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     global ysxE=1.017 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
+    global ysxE_NH4=1.017 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     global ysxA=0.160 # https://www.researchgate.net/figure/Growth-kinetics-of-Azotobacter-vinelandii-in-medium-before-and-after-optimization_tbl2_301753155
     global ysxS=0.17 # https://www.sciencedirect.com/science/article/pii/S0960852406004792
     # global D0= 0.68 # h^-1 initial dilusion rate
@@ -56,7 +58,7 @@ function loadProcessData()
     global saiin=0.1  # L/min
     global saiout=0.1
     global V=5 #L
-    global D0=saiout/V
+    global D0=saiout/V # 0.02
     println("Parameters Loaded!")
 end
 
