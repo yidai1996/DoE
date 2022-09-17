@@ -1,4 +1,5 @@
 # Simulation for Continuously Triculturing System
+# Simplest version: the limited substrates are sucrose and ammonia for Av/Se respectively, while E.coli consider sucrose and oxygen transfer limitation
 using Plots, JuMP, Ipopt, DifferentialEquations, NLsolve
 
 function loadProcessData()
@@ -29,8 +30,10 @@ function loadProcessData()
     println("Parameters Loaded!")
 end
 
-function EcoliGrowth(X0,S0,P0,tspan)
-    global tt1,X1,S1,P1=ODEStep(X0,S0,P0,tspan)
+function AllGrowth(X0,S0,P0,tspan) # Continuous flow
+    loadProcessData()
+    global tt1,X1,S1,P1=Tripartite(D0,E0,A0,S0,N20,O20,CO20,P0,tspan)
+    # E,A,S mean E.coli, Av, and Se
     # global dxdt=zeros(size(tt1)[1])
     # global dPdt=zeros(size(tt1)[1])
     # global dSdt=zeros(size(tt1)[1])
@@ -55,12 +58,13 @@ function EcoliGrowth(X0,S0,P0,tspan)
     # plot(tt1,dPdt,title="Product rate",xaxis="Time(hr)",yaxis="dPdt(g/L/h)",label=false)
 end
 
-function ODEStep(X,S,P,tspan) # Use one ODE solver to solve the whole system
+function Tripartite(D,E,A,S,N2,O2,CO2,P,tspan) # Use one ODE solver to solve the whole system
+    # The following odes haven't been modified yet
     f(y,p,t)=[(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2]) - kd)*y[1],
          -max(y[2],0)/y[2]*(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])/ysx + ms)*y[1],
          0]
          # (max((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1],0)/((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2]) - kd)*y[1])*mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])*ysp_g/ysx + (1-max((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1],0)/(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1])*ysp_m*ms)*y[1]] # X,S,P
-    prob=ODEProblem(f,[X,S,P],(0.0,tspan))
+    prob=ODEProblem(f,[X,N2,O2,CO2],(0.0,tspan))
     # PositiveDomain(S=nothing;save=true,abstol=nothing,scalefactor=nothing)
     soln=DifferentialEquations.solve(prob,Rosenbrock23())
     a=soln.t

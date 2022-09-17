@@ -1,4 +1,4 @@
-using Plots, JuMP, Ipopt, DifferentialEquations, NLsolve, BenchmarkTools
+using Plots, JuMP, Ipopt, DifferentialEquations, NLsolve
 
 function loadProcessData()
     global mu_max=1.7 #h^-1 from David's thesis(meeting slides from Prof.Lin) 1.7
@@ -24,12 +24,19 @@ function loadProcessData()
     # global Xs=0.7 # g/L set point of cell concentration
     # global Ps=0.25 # g/L
     # global Ss=5.0
+    global M_O2=16 # g/mol
+    global yox=
+    global mo=
+    global kLaO=
+    global xO2_sat=
     global tspan=100
     println("Parameters Loaded!")
 end
 
 function EcoliGrowth(X0,S0,P0,tspan)
+    loadProcessData()
     global tt1,X1,S1,P1=ODEStep(X0,S0,P0,tspan)
+    global tt,Xt,St,Pt,O2=ODEStep(X0,S0,P0,O20,tspan)
     # global dxdt=zeros(size(tt1)[1])
     # global dPdt=zeros(size(tt1)[1])
     # global dSdt=zeros(size(tt1)[1])
@@ -54,12 +61,20 @@ function EcoliGrowth(X0,S0,P0,tspan)
     # plot(tt1,dPdt,title="Product rate",xaxis="Time(hr)",yaxis="dPdt(g/L/h)",label=false)
 end
 
-function ODEStep(X,S,P,tspan) # Use one ODE solver to solve the whole system
-    f(y,p,t)=[(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2]) - kd)*y[1],
-         -max(y[2],0)/y[2]*(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])/ysx + ms)*y[1],
-         0]
-         # (max((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1],0)/((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2]) - kd)*y[1])*mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])*ysp_g/ysx + (1-max((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1],0)/(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1])*ysp_m*ms)*y[1]] # X,S,P
-    prob=ODEProblem(f,[X,S,P],(0.0,tspan))
+function ODEStep(X,S,P,O2,tspan) # Use one ODE solver to solve the whole system
+    # f(y,p,t)=[(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2]) - kd)*y[1],
+    #      -max(y[2],0)/y[2]*(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])/ysx + ms)*y[1],
+    #      0] # No production
+    # f(y,p,t)=[(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2]) - kd)*y[1],
+    #           -max(y[2],0)/y[2]*(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])/ysx + ms)*y[1],
+    #          (max((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1],0)/((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2]) - kd)*y[1])*mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])*ysp_g/ysx + (1-max((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1],0)/(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1])*ysp_m*ms)*y[1]]
+    #          # Producing isobutanol
+    f(y,p,t)=[(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])*M_O2*y[4]/(kO2+M_O2*y[4]) - kd)*y[1],
+               -max(y[2],0)/y[2]*(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])*M_O2*y[4]/(kO2+M_O2*y[4])/ysx + ms)*y[1],
+              (max((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])*M_O2*y[4]/(kO2+M_O2*y[4])-kd)*y[1],0)/((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])*M_O2*y[4]/(kO2+M_O2*y[4]) - kd)*y[1])*mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])*M_O2*y[4]/(kO2+M_O2*y[4])*ysp_g/ysx + (1-max((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])*M_O2*y[4]/(kO2+M_O2*y[4])-kd)*y[1],0)/(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])*M_O2*y[4]/(kO2+M_O2*y[4])-kd)*y[1])*ysp_m*ms)*y[1],
+              -max(y[4],0)/y[4]*(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])*M_O2*y[4]/(kO2+M_O2*y[4])/yox+mo)*y[1] + M_O2*kLaO*(xO2_sat-y[4])]
+              # Considering oxygen transfer limitation in Monod equation with production
+    prob=ODEProblem(f,[X,S,P,O2],(0.0,tspan))
     # PositiveDomain(S=nothing;save=true,abstol=nothing,scalefactor=nothing)
     soln=DifferentialEquations.solve(prob,Rosenbrock23())
     a=soln.t
@@ -67,5 +82,5 @@ function ODEStep(X,S,P,tspan) # Use one ODE solver to solve the whole system
     # plot(a,A[1,:],title="Microbial concentration profile",xaxis="Time(hr)",yaxis="X(g/L)",label=false)
     # plot(a,A[2,:],title="Substrate concentration profile",xaxis="Time(hr)",yaxis="S(g/L)",label=false)
     # plot(a,A[3,:],title="Product concentration profile",xaxis="Time(hr)",yaxis="P(g/L)",label=false)
-    return a,A[1,:],A[2,:],A[3,:]
+    return a,A[1,:],A[2,:],A[3,:],A[3,:]
 end
