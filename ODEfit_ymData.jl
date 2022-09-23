@@ -2,20 +2,26 @@ using OrdinaryDiffEq, LsqFit, XLSX, Plots, DifferentialEquations, NLsolve
 
 global mumax=0.230
 global kd=0.006
-xf=XLSX.readxlsx("G:\\My Drive\\Research\\DOE project\\Modeling\\Data fitting\\DATA from Sofia\\E coli monoculture simulated data.xlsx")
-sh=xf["Data analysis - M9IPG"]
-T1=convert(Array{Float64,2},sh["B3:B62"])
-C1=convert(Array{Float64,2},sh["AT3:AT62"])# 2g/L
-T2=convert(Array{Float64,2},sh["B3:B62"])
-C2=convert(Array{Float64,2},sh["AJ3:AJ62"])# 1g/L
-T2=convert(Array{Float64,2},sh["B3:B62"])
-C3=convert(Array{Float64,2},sh["Z3:Z62"])# 0.75g/L
-T2=convert(Array{Float64,2},sh["B3:B62"])
-C4=convert(Array{Float64,2},sh["P3:P62"])# 0.5g/L
-T2=convert(Array{Float64,2},sh["B3:B62"])
-C5=convert(Array{Float64,2},sh["F3:F62"])# 0.25g/L
-global X0=[C1[4] C2[4] C3[4] C4[4] C5[4]]*0.396 # g/L
-global S0=[2 1 0.75 0.5 0.25]
+# include(Monoculture_producer_Ecoli_ODEs_Batch_0223.jl)
+xf=XLSX.readxlsx("G:\\My Drive\\Research\\DOE project\\Modeling\\Triculture\\roughly data fitting\\OD_Prod_Ec_2exp_datafit.xlsx")
+sh1=xf["OD_1"]
+sh2=xf["Iso_Prod_1"]
+sh3=xf["OD_2"]
+sh4=xf["Iso_Prod_2"]
+d1=convert(Array{Float64,2},sh2["A16:A20"])
+d2=convert(Array{Float64,2},sh4["B11:B14"])
+E11=convert(Array{Float64,2},sh1["B12:B16"])
+E12=convert(Array{Float64,2},sh1["C12:C16"])
+E21=convert(Array{Float64,2},sh3["B11:B14"])
+E22=convert(Array{Float64,2},sh3["C11:C14"])
+
+P11=convert(Array{Float64,2},sh2["H16:H20"])
+P12=convert(Array{Float64,2},sh2["I16:I20"])
+P21=convert(Array{Float64,2},sh4["D11:D14"])
+P22=convert(Array{Float64,2},sh4["G11:G14"])
+
+global X0=[E11[1] E12[1] E21[1] E22[1]]*0.396 # g/L
+global S0=[4 4 4 4] # g/L
 
 # global mumax=0.350
 # global kd=0.006
@@ -58,12 +64,17 @@ global S0=[2 1 0.75 0.5 0.25]
 #     return solns
 # end
 
-function testL(tt,a)
+function testL(tt,a) 
     #tt=times (assumed to be a vector), a = vector of parameters
-    # a=[ks,ysx, ms] kd=0。006， mumax=0.230
+    # a=[mu_max ks kO2] kd=0。006， mumax=0.230
     f(y,p,t)=[(a[4]*y[2]/(a[1]+y[2])*y[1])*(1-y[1]/a[5]) - kd*y[1],
          # -0.5*(tanh(100*y[2])+1)*(0.230*y[2]/(a[1]+y[2])/a[2] + a[3])*y[1]] # X,S
          -max(y[2],0)/y[2]*(mumax*y[2]/(a[1]+y[2])/a[2] + a[3])*y[1]] # X,S
+    f(y,p,t)=[(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1]-D[1]*y[1], # X(E.coli)
+              1/Vt*max(y[4],0)/y[4]*(-(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE + msE)*y[1] - ((mu_maxA*y[4]/(ksA+y[4]) - kdA)/ysxA+msA)*y[2] + yspS*(mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS*y[3]  - sum(D)*y[4]), # Sucrose
+              1/Vt*max(y[5],0)/y[5]*(yspA*(mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]/ysxA - (mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE_NH4 + msE_NH4)*y[1] - ((mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS+msS)*y[3] - sum(D)*y[5]), # Ammonia
+              1/Vt*(max((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1])*mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])*ysp_g/ysxE + (1-max((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1])*ysp_m*msE)*y[1] - sum(D)*y[6]] # Product
+
     TT=size(tt)[1]
     Tmax=17
     prob1=ODEProblem(f,[X0[1],S0[1]],(0.0,Tmax-T1[4]))
@@ -99,11 +110,12 @@ end
 
 function ODEStep(X,S,P,tspan) # Use one ODE solver to solve the whole system
     # f(y,p,t)=[(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2]) - kd)*y[1],
-    f(y,p,t)=[(mumax*y[2]/(ks+y[2]) - kd)*y[1],
-         # -max(y[2],0)/y[2]*(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])/ysx + ms)*y[1],
-         -max(y[2],0)/y[2]*(mumax*y[2]/(ks+y[2])/ysx + ms)*y[1],
-         0]
-         # (max((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1],0)/((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2]) - kd)*y[1])*mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])*ysp_g/ysx + (1-max((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1],0)/(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1])*ysp_m*ms)*y[1]] # X,S,P
+    f(y,p,t)=[(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1]-D[1]*y[1], # X(E.coli)
+         (mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]-D[2]*y[2],# X(Av)
+         (mu_maxS*y[5]/(ksS+y[5]) - kdS)*y[3]-D[3]*y[3],# X(Se)
+         1/Vt*max(y[4],0)/y[4]*(-(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE + msE)*y[1] - ((mu_maxA*y[4]/(ksA+y[4]) - kdA)/ysxA+msA)*y[2] + yspS*(mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS*y[3]  - sum(D)*y[4]), # Sucrose
+         1/Vt*max(y[5],0)/y[5]*(yspA*(mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]/ysxA - (mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE_NH4 + msE_NH4)*y[1] - ((mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS+msS)*y[3] - sum(D)*y[5]), # Ammonia
+         1/Vt*(max((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1])*mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])*ysp_g/ysxE + (1-max((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1])*ysp_m*msE)*y[1] - sum(D)*y[6]] # Product
     prob=ODEProblem(f,[X,S,P],(0.0,tspan))
     # PositiveDomain(S=nothing;save=true,abstol=nothing,scalefactor=nothing)
     soln=DifferentialEquations.solve(prob,Rosenbrock23())
@@ -114,11 +126,12 @@ end
 
 function ODEStepL(X,S,P,tspan) # Use one ODE solver to solve the whole system
     # f(y,p,t)=[(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2]) - kd)*y[1],
-    f(y,p,t)=[(mumax*y[2]/(ks+y[2]))*y[1]*(1-y[1]/cap)- kd*y[1],
-         # -max(y[2],0)/y[2]*(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])/ysx + ms)*y[1],
-         -max(y[2],0)/y[2]*(mumax*y[2]/(ks+y[2])/ysx + ms)*y[1],
-         0]
-         # (max((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1],0)/((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2]) - kd)*y[1])*mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])*ysp_g/ysx + (1-max((mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1],0)/(mu_max*y[2]*(max(1-y[3]/P_star,0.0))^n/(ks+y[2])-kd)*y[1])*ysp_m*ms)*y[1]] # X,S,P
+    f(y,p,t)=[(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1]-D[1]*y[1], # X(E.coli)
+         (mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]-D[2]*y[2],# X(Av)
+         (mu_maxS*y[5]/(ksS+y[5]) - kdS)*y[3]-D[3]*y[3],# X(Se)
+         1/Vt*max(y[4],0)/y[4]*(-(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE + msE)*y[1] - ((mu_maxA*y[4]/(ksA+y[4]) - kdA)/ysxA+msA)*y[2] + yspS*(mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS*y[3]  - sum(D)*y[4]), # Sucrose
+         1/Vt*max(y[5],0)/y[5]*(yspA*(mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]/ysxA - (mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE_NH4 + msE_NH4)*y[1] - ((mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS+msS)*y[3] - sum(D)*y[5]), # Ammonia
+         1/Vt*(max((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1])*mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])*ysp_g/ysxE + (1-max((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1])*ysp_m*msE)*y[1] - sum(D)*y[6]] # Product
     prob=ODEProblem(f,[X,S,P],(0.0,tspan))
     # PositiveDomain(S=nothing;save=true,abstol=nothing,scalefactor=nothing)
     soln=DifferentialEquations.solve(prob,Rosenbrock23())

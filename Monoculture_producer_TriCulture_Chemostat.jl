@@ -75,7 +75,9 @@ function AllGrowth() # Continuous flow
     global tt,Et,At,St,Pt,Ct,Nt=Tripartite(D0,E0,At1[end],St1[end],Nt1[end],Ct1[end],P0,tspan2)
     # E,A,S mean E.coli, Av, and Se
     global dEdt=zeros(size(tt)[1])
+    global dA1dt=zeros(size(tt1)[1])
     global dAdt=zeros(size(tt)[1])
+    global dS1dt=zeros(size(tt1)[1])
     global dSdt=zeros(size(tt)[1])
     global dCdt1=zeros(size(tt)[1])
     global dCdt2=zeros(size(tt)[1])
@@ -91,9 +93,13 @@ function AllGrowth() # Continuous flow
     plot(tt,dEdt,title="Growth rate of E.coli",xaxis="Time(hr)",yaxis="g/L/h",label=false)
     savefig("E.coliGrowthRate_test.png")
 
+    for i=1:size(tt1)[1]
+        dA1dt[i]=(mu_maxA*Ct1[i]/(ksA+Ct1[i]) - kdA)*At1[i] - saiout*At1[i]
+    end
     for i=1:size(tt)[1]
         dAdt[i]=(mu_maxA*Ct[i]/(ksA+Ct[i]) - kdA)*At[i] - saiout*At[i]
     end
+    #TODO writh the correct code for plotting both stages
     plot(tt,dAdt,title="Growth rate of Av",xaxis="Time(hr)",yaxis="g/L/h",label=false)
     savefig("AvGrowthRate_test.png")
 
