@@ -10,23 +10,23 @@ function loadProcessData()
     global mu_maxS=0.5 #h^-1 https://onlinelibrary.wiley.com/doi/full/10.1002/cjce.22154
     global msE=0.1 # gsubstrate/gbiomass/h +-0.0008 h^-1 from David's thesis  substrate used for maintenence
     global msE_NH4=0.1 # gsubstrate/gbiomass/h
-    global msA=0.1 # gsubstrate/gbiomass/h
-    global msS=0.1 # gsubstrate/gbiomass/h
+    global msA=0.31 # gsubstrate/gbiomass/h
+    global msS=0.22 # gsubstrate/gbiomass/h
     global T0=303 #K
     global pH=7 # from Sofia medium
     global kdE=0.003 #h^-1 cell death rate from David's thesis
     global kdA=0.003 #h^-1
     global kdS=0.003 #h^-1
     global ksE=0.1 # gbiomass/L +-0.004 from David's thesis
-    global ksA=0.31 # gbiomass/L https://www.sciencedirect.com/science/article/pii/S1369703X02001766
-    global ksS=0.22 # gbiomass/L https://onlinelibrary.wiley.com/doi/full/10.1111/j.1529-8817.2005.04063.x
+    global ksA=0.1 # gbiomass/L https://www.sciencedirect.com/science/article/pii/S1369703X02001766
+    global ksS=0.1 # gbiomass/L https://onlinelibrary.wiley.com/doi/full/10.1111/j.1529-8817.2005.04063.x
     global ksE_NH4=0.1
     # global ki=0.3 # my guessing
     global n=4.86
     global P_star=0.20
     global ysp_g=0.3 # gbiomass/gsubstrate from Minty 13 0.322
     global ysp_m=0.2 # gbiomass/gsubstrate from David's thesis, 0.409 at the first try
-    global yspA=0.9 # https://microbialcellfactories.biomedcentral.com/track/pdf/10.1186/s12934-020-01362-9.pdf
+    global yspA=1.9 # https://microbialcellfactories.biomedcentral.com/track/pdf/10.1186/s12934-020-01362-9.pdf
     global yspS=2 #
     # global ysx=0.06 #http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     # global ysx=1.017 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
@@ -56,10 +56,10 @@ function loadProcessData()
     global O20=xO2_sat
     global tspan1=72 # h David's thesis
     global tspan2=100
-    global saiin=0.2  # L/min
-    global saioutE=0.1 # David's thesis
-    global saioutS=0.1
-    global saioutA=0.1
+    global saiin=0.05  # L/min
+    global saioutE=0.01 # David's thesis
+    global saioutS=0.01
+    global saioutA=0.01
     global V=0.5 #L
     global Vt=3*V
     global DE=saioutE/V # 0.2
@@ -72,90 +72,124 @@ end
 function AllGrowth() # Continuous flow
     loadProcessData()
     global tt1,At1,St1,Ct1,Nt1=Startup(D0,A0,S0,N0,C0,tspan1)
-    global tt,Et,At,St,Pt,Ct,Nt=Tripartite(D0,E0,At1[end],St1[end],Nt1[end],Ct1[end],P0,tspan2)
+    # global tt,Et,At,St,Pt,Ct,Nt=Tripartite(D0,E0,At1[end],St1[end],Nt1[end],Ct1[end],P0,tspan2)
     # E,A,S mean E.coli, Av, and Se
-    global dEdt=zeros(size(tt)[1])
+    # global dEdt=zeros(size(tt)[1])
     global dA1dt=zeros(size(tt1)[1])
-    global dAdt=zeros(size(tt)[1])
+    # global dAdt=zeros(size(tt)[1])
     global dS1dt=zeros(size(tt1)[1])
-    global dSdt=zeros(size(tt)[1])
-    global dCdt1=zeros(size(tt)[1])
-    global dCdt2=zeros(size(tt)[1])
-    global dCdt3=zeros(size(tt)[1])
-    global dNdt1=zeros(size(tt)[1])
-    global dNdt2=zeros(size(tt)[1])
-    global dNdt3=zeros(size(tt)[1])
-    global dPdt=zeros(size(tt)[1])
-    #TODO Plots should be modified with startup and inoculation stages
-    for i=1:size(tt)[1]
-        dEdt[i]=(mu_maxE*Ct[i]*(max(1-Pt[i]/P_star,0.0))^n/(ksE+Ct[i])*Nt[i]/(ksE_NH4+Nt[i]) - kdE)*Et[i]-saiout*Et[i]
-    end
-    plot(tt,dEdt,title="Growth rate of E.coli",xaxis="Time(hr)",yaxis="g/L/h",label=false)
-    savefig("E.coliGrowthRate_test.png")
+    # global dSdt=zeros(size(tt)[1])
+    # global dCdt1=zeros(size(tt)[1])
+    # global dCdt2=zeros(size(tt)[1])
+    # global dCdt3=zeros(size(tt)[1])
+    # global dNdt1=zeros(size(tt)[1])
+    # global dNdt2=zeros(size(tt)[1])
+    # global dNdt3=zeros(size(tt)[1])
+    # global dPdt=zeros(size(tt)[1])
+    # size_t=size(tt)[1]+size(tt1)[1]
+    # global final_dEdt=zeros(size_t)
+    # global final_dAdt=zeros(size_t)
+    # global final_dSdt=zeros(size_t)
+    # global final_Et=zeros(size_t)
+    # global final_At=zeros(size_t)
+    # global final_St=zeros(size_t)
+    # global final_Ct=zeros(size_t)
+    # global final_Nt=zeros(size_t)
+    # global final_Pt=zeros(size_t)
+    # for i=1:size(tt)[1]
+    #     dEdt[i]=(mu_maxE*Ct[i]*(max(1-Pt[i]/P_star,0.0))^n/(ksE+Ct[i])*Nt[i]/(ksE_NH4+Nt[i]) - kdE)*Et[i]-saioutE*Et[i]
+    # end
+    # ttt=cat(tt1,tt.+72;dims=(1,1))
+    # dE1dt=zeros(size(tt1)[1])
+    # final_dEdt=cat(dE1dt,dEdt;dims=(1,1))
+    # println(size(ttt))
+    # println(size(final_dEdt))
+    # plot(ttt,final_dEdt,title="Growth rate of E.coli",xaxis="Time(hr)",yaxis="g/L/h",label=false)
+    # savefig("E.coliGrowthRate_test.png")
 
     for i=1:size(tt1)[1]
-        dA1dt[i]=(mu_maxA*Ct1[i]/(ksA+Ct1[i]) - kdA)*At1[i] - saiout*At1[i]
+        dA1dt[i]=(mu_maxA*Ct1[i]/(ksA+Ct1[i]) - kdA)*At1[i] - saioutA*At1[i]
     end
-    for i=1:size(tt)[1]
-        dAdt[i]=(mu_maxA*Ct[i]/(ksA+Ct[i]) - kdA)*At[i] - saiout*At[i]
-    end
-    #TODO writh the correct code for plotting both stages
-    plot(tt,dAdt,title="Growth rate of Av",xaxis="Time(hr)",yaxis="g/L/h",label=false)
-    savefig("AvGrowthRate_test.png")
+    println(size(tt1)[1])
+    plot(tt1,dA1dt,title="Growth rate of Av when biculture",xaxis="Time(hr)",yaxis="g/L/h",label=false)
+    # plot(tt1,dA1dt,title="Growth rate of Av when biculture",xaxis="Time(hr)",yaxis="g/L/h",label=false)
+    savefig("AvGrowthRate when biculture_test.png")
+    # for i=1:size(tt)[1]
+    #     dAdt[i]=(mu_maxA*Ct[i]/(ksA+Ct[i]) - kdA)*At[i] - saioutA*At[i]
+    # end
+    # final_dAdt=cat(dA1dt,dAdt;dims=(1,1))
+    # plot(ttt,final_dAdt,title="Growth rate of Av",xaxis="Time(hr)",yaxis="g/L/h",label=false)
+    # savefig("AvGrowthRate_test.png")
 
-    for i=1:size(tt)[1]
-        dSdt[i]=(mu_maxS*Nt[i]/(ksS+Nt[i]) - kdS)*St[i] - saiout*St[i]
+    for i=1:size(tt1)[1]
+        dS1dt[i]=(mu_maxS*Nt1[i]/(ksS+Nt1[i]) - kdS)*St1[i] - saioutS*St1[i]
     end
-    plot(tt,dSdt,title="Growth rate of Se",xaxis="Time(hr)",yaxis="g/L/h",label=false)
-    savefig("SeGrowthRate_test.png")
+    plot(tt1,dS1dt,title="Growth rate of Se when biculture",xaxis="Time(hr)",yaxis="g/L/h",label=false)
+    savefig("SeGrowthRatewhen biculture_test.png")
+    # for i=1:size(tt)[1]
+    #     dSdt[i]=(mu_maxS*Nt[i]/(ksS+Nt[i]) - kdS)*St[i] - saioutS*St[i]
+    # end
+    # final_dSdt=cat(dS1dt,dSdt;dims=(1,1))
+    # plot(ttt,final_dSdt,title="Growth rate of Se",xaxis="Time(hr)",yaxis="g/L/h",label=false)
+    # savefig("SeGrowthRate_test.png")
 
-    for i=1:size(tt)[1]
-        dCdt1[i]= - (mu_maxE*Ct[i]*(max(1-Pt[i]/P_star,0.0))^n/(ksE+Ct[i])*Nt[i]/(ksE_NH4+Nt[i])/ysxE + msE)*Et[i]
-        dCdt2[i]= - ((mu_maxA*Ct[i]/(ksA+Ct[i]) - kdA)/ysxA+msA)*At[i]
-        dCdt3[i]= + yspS*(mu_maxS*Nt[i]/(ksS+Nt[i]) - kdS)/ysxS
-    end
-    plot(tt,dCdt1,title="Sucrose consumed/produced rate",xaxis="Time(hr)",yaxis="g/L/h",label="Consumed by E.coli")
-    plot!(tt,dCdt2,xaxis="Time(hr)",yaxis="g/L/h",label="Consumed by Av")
-    plot!(tt,dCdt3,xaxis="Time(hr)",yaxis="g/L/h",label="Produced by Se")
-    savefig("Sucrose consumedandproduced rate_test.png")
+    # for i=1:size(tt)[1]
+    #     dCdt1[i]= - (mu_maxE*Ct[i]*(max(1-Pt[i]/P_star,0.0))^n/(ksE+Ct[i])*Nt[i]/(ksE_NH4+Nt[i])/ysxE + msE)*Et[i]
+    #     dCdt2[i]= - ((mu_maxA*Ct[i]/(ksA+Ct[i]) - kdA)/ysxA+msA)*At[i]
+    #     dCdt3[i]= + yspS*(mu_maxS*Nt[i]/(ksS+Nt[i]) - kdS)/ysxS
+    # end
+    # plot(tt,dCdt1,title="Sucrose consumed/produced rate",xaxis="Time(hr)",yaxis="g/L/h",label="Consumed by E.coli")
+    # plot!(tt,dCdt2,xaxis="Time(hr)",yaxis="g/L/h",label="Consumed by Av")
+    # plot!(tt,dCdt3,xaxis="Time(hr)",yaxis="g/L/h",label="Produced by Se")
+    # savefig("Sucrose consumedandproduced rate_test.png")
 
-    for i=1:size(tt)[1]
-        dNdt1[i]= yspA*(mu_maxA*Ct[i]/(ksA+Ct[i]) - kdA)*At[i]/ysxA
-        dNdt2[i]= - (mu_maxE*Ct[i]*(max(1-Pt[i]/P_star,0.0))^n/(ksE+Ct[i])*Nt[i]/(ksE_NH4+Nt[i])/ysxE + msE)*Et[i]
-        dNdt3[i]= - ((mu_maxS*Nt[i]/(ksS+Nt[i]) - kdS)/ysxS+msS)*St[i]
-    end
-    plot(tt,dNdt1,title="Ammonia consumed/produced rate",xaxis="Time(hr)",yaxis="g/L/h",label="Produced by Av")
-    plot!(tt,dNdt2,xaxis="Time(hr)",yaxis="g/L/h",label="Consumed by E.coli")
-    plot!(tt,dNdt3,xaxis="Time(hr)",yaxis="g/L/h",label="Consumed by Se")
-    savefig("Ammonia consumedandproduced rate_test.png")
+    # for i=1:size(tt)[1]
+    #     dNdt1[i]= yspA*(mu_maxA*Ct[i]/(ksA+Ct[i]) - kdA)*At[i]/ysxA
+    #     dNdt2[i]= - (mu_maxE*Ct[i]*(max(1-Pt[i]/P_star,0.0))^n/(ksE+Ct[i])*Nt[i]/(ksE_NH4+Nt[i])/ysxE + msE)*Et[i]
+    #     dNdt3[i]= - ((mu_maxS*Nt[i]/(ksS+Nt[i]) - kdS)/ysxS+msS)*St[i]
+    # end
+    # plot(tt,dNdt1,title="Ammonia consumed/produced rate",xaxis="Time(hr)",yaxis="g/L/h",label="Produced by Av")
+    # plot!(tt,dNdt2,xaxis="Time(hr)",yaxis="g/L/h",label="Consumed by E.coli")
+    # plot!(tt,dNdt3,xaxis="Time(hr)",yaxis="g/L/h",label="Consumed by Se")
+    # savefig("Ammonia consumedandproduced rate_test.png")
 
-    for i=1:size(tt)[1]
-        zz=(mu_maxE*Ct[i]*(max(1-Pt[i]/P_star,0.0))^n/(ksE+Ct[i])*Nt[i]/(ksE_NH4+Nt[i]) - kdE)*Et[i]
-        dPdt[i]=(max(zz,0)/zz*mu_maxE*Ct[i]*(max(1-Pt[i]/P_star,0.0))^n/(ksE+Ct[i])*Nt[i]/(ksE_NH4+Nt[i])*ysp_g/ysxE + (1-max(zz,0)/zz)*ysp_m*msE)*Et[i]
-    end
-    plot(tt,dPdt,title="Isobutanol produced rate",xaxis="Time(hr)",yaxis="g/L/h",label=false)
-    savefig("Isobutanol produced rate_test.png")
+    # for i=1:size(tt)[1]
+    #     zz=(mu_maxE*Ct[i]*(max(1-Pt[i]/P_star,0.0))^n/(ksE+Ct[i])*Nt[i]/(ksE_NH4+Nt[i]) - kdE)*Et[i]
+    #     dPdt[i]=(max(zz,0)/zz*mu_maxE*Ct[i]*(max(1-Pt[i]/P_star,0.0))^n/(ksE+Ct[i])*Nt[i]/(ksE_NH4+Nt[i])*ysp_g/ysxE + (1-max(zz,0)/zz)*ysp_m*msE)*Et[i]
+    # end
+    # plot(tt,dPdt,title="Isobutanol produced rate",xaxis="Time(hr)",yaxis="g/L/h",label=false)
+    # savefig("Isobutanol produced rate_test.png")
 
-    plot(tt,Et/0.396,title="E.coli concentration profile",xaxis="Time(hr)",yaxis="OD600",label=false)
-    savefig("Ecoli_test.png")
-    plot(tt,At,title="Av concentration profile",xaxis="Time(hr)",yaxis="Av(g/L)",label=false)
-    savefig("Av_test.png")
-    plot(tt,St,title="Se concentration profile",xaxis="Time(hr)",yaxis="Se(g/L)",label=false)
-    savefig("Se_test.png")
-    plot(tt,Ct,title="Sucrose concentration profile",xaxis="Time(hr)",yaxis="Sucrose(g/L)",label=false)
-    savefig("Sucrose_test.png")
-    plot(tt,Nt,title="Ammonia concentration profile",xaxis="Time(hr)",yaxis="Ammonia(g/L)",label=false)
-    savefig("Ammonia_test.png")
-    plot(tt,Pt,title="Product concentration profile",xaxis="Time(hr)",yaxis="Isobutanol(g/L)",label=false)
-    savefig("Isobutanol_test.png")
+    # final_Et=cat(zeros(size(tt1)[1]),Et;dims=(1,1))
+    # plot(ttt,final_Et/0.396,title="E.coli concentration profile",xaxis="Time(hr)",yaxis="OD600",label=false)
+    # savefig("Ecoli_test.png")
+    # final_At=cat(At1,At;dims=(1,1))
+    plot(tt1,At1,title="Av concentration profile when biculture",xaxis="Time(hr)",yaxis="Av(g/L)",label=false)
+    # plot(ttt,final_At,title="Av concentration profile",xaxis="Time(hr)",yaxis="Av(g/L)",label=false)
+    savefig("Av_test when biculture.png")
+    # final_St=cat(St1,St;dims=(1,1))
+    plot(tt1,St1,title="Se concentration profile when biculture",xaxis="Time(hr)",yaxis="Se(g/L)",label=false)
+    # plot(ttt,final_St,title="Se concentration profile",xaxis="Time(hr)",yaxis="Se(g/L)",label=false)
+    savefig("Se_test when biculture.png")
+    # final_Ct=cat(Ct1,Ct;dims=(1,1))
+    plot(tt1,Ct1,title="Sucrose concentration profile when biculture",xaxis="Time(hr)",yaxis="Sucrose(g/L)",label=false)
+    # plot(ttt,final_Ct,title="Sucrose concentration profile",xaxis="Time(hr)",yaxis="Sucrose(g/L)",label=false)
+    savefig("Sucrose_test when biculture.png")
+    # final_Nt=cat(Nt1,Nt;dims=(1,1))
+    plot(tt1,Nt1,title="Ammonia concentration profile when biculture",xaxis="Time(hr)",yaxis="Ammonia(g/L)",label=false)
+    # plot(ttt,final_Nt,title="Ammonia concentration profile",xaxis="Time(hr)",yaxis="Ammonia(g/L)",label=false)
+    savefig("Ammonia_test when biculture.png")
+    # final_Pt=cat(zeros(size(tt1)[1]),Pt;dims=(1,1))
+    # plot(ttt,final_Pt,title="Product concentration profile",xaxis="Time(hr)",yaxis="Isobutanol(g/L)",label=false)
+    # savefig("Isobutanol_test.png")
 end
 
 function Startup(D,A,S,N,C,tspan1)
     f(y,p,t)=[(mu_maxA*y[3]/(ksA+y[3]) - kdA)*y[1]-D[2]*y[1],# X(Av)
          (mu_maxS*y[4]/(ksS+y[4]) - kdS)*y[3]-D[3]*y[2],# X(Se)
          1/Vt*max(y[3],0)/y[3]*( - ((mu_maxA*y[3]/(ksA+y[3]) - kdA)/ysxA+msA)*y[1] + yspS*(mu_maxS*y[4]/(ksS+y[4]) - kdS)/ysxS*y[2] - (D[2]+D[3])*y[3]), # Sucrose
-         1/Vt*max(y[4],0)/y[4]*(yspA*(mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]/ysxA  - ((mu_maxS*y[4]/(ksS+y[4]) - kdS)/ysxS+msS)*y[2] - (D[2]+D[3])*y[4])] # Ammonia
-    prob=ODEProblem(f,[E,A,S,N,C,P],(0.0,tspan))
+         1/Vt*max(y[4],0)/y[4]*(yspA*(mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[1]/ysxA  - ((mu_maxS*y[4]/(ksS+y[4]) - kdS)/ysxS+msS)*y[2] - (D[2]+D[3])*y[4])] # Ammonia
+    prob=ODEProblem(f,[A,S,N,C],(0.0,tspan1))
     # PositiveDomain(S=nothing;save=true,abstol=nothing,scalefactor=nothing)
     soln=DifferentialEquations.solve(prob,Rosenbrock23())
     a=soln.t
@@ -178,7 +212,7 @@ function Tripartite(D,E,A,S,N,C,P,tspan2) # Use one ODE solver to solve the whol
          1/Vt*max(y[5],0)/y[5]*(yspA*(mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]/ysxA - (mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE_NH4 + msE_NH4)*y[1] - ((mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS+msS)*y[3] - sum(D)*y[5]), # Ammonia
          1/Vt*(max((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1])*mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])*ysp_g/ysxE + (1-max((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1])*ysp_m*msE)*y[1] - sum(D)*y[6]] # Product
 
-    prob=ODEProblem(f,[E,A,S,N,C,P],(0.0,tspan))
+    prob=ODEProblem(f,[E,A,S,N,C,P],(0.0,tspan2))
     # PositiveDomain(S=nothing;save=true,abstol=nothing,scalefactor=nothing)
     soln=DifferentialEquations.solve(prob,Rosenbrock23())
     a=soln.t
