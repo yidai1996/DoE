@@ -184,11 +184,11 @@ function AllGrowth() # Continuous flow
     # savefig("Isobutanol_test.png")
 end
 
-function Startup(D,A,S,N,C,tspan1)
-    f(y,p,t)=[(mu_maxA*y[3]/(ksA+y[3]) - kdA)*y[1]-D[2]*y[1],# X(Av)
-         (mu_maxS*y[4]/(ksS+y[4]) - kdS)*y[3]-D[3]*y[2],# X(Se)
-         1/Vt*max(y[3],0)/y[3]*( - ((mu_maxA*y[3]/(ksA+y[3]) - kdA)/ysxA+msA)*y[1] + yspS*(mu_maxS*y[4]/(ksS+y[4]) - kdS)/ysxS*y[2] - (D[2]+D[3])*y[3]), # Sucrose
-         1/Vt*max(y[4],0)/y[4]*(yspA*(mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[1]/ysxA  - ((mu_maxS*y[4]/(ksS+y[4]) - kdS)/ysxS+msS)*y[2] - (D[2]+D[3])*y[4])] # Ammonia
+function Startup(D,A,S,N,C,tspan1) # batch
+    f(y,p,t)=[(mu_maxA*y[3]/(ksA+y[3]) - kdA)*y[1],# X(Av)
+         (mu_maxS*y[4]/(ksS+y[4]) - kdS)*y[3],# X(Se)
+         1/Vt*max(y[3],0)/y[3]*( - ((mu_maxA*y[3]/(ksA+y[3]) - kdA)/ysxA+msA)*y[1] + yspS*(mu_maxS*y[4]/(ksS+y[4]) - kdS)/ysxS*y[2]), # Sucrose
+         1/Vt*max(y[4],0)/y[4]*(yspA*(mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[1]/ysxA  - ((mu_maxS*y[4]/(ksS+y[4]) - kdS)/ysxS+msS))*y[2]] # Ammonia
     prob=ODEProblem(f,[A,S,N,C],(0.0,tspan1))
     # PositiveDomain(S=nothing;save=true,abstol=nothing,scalefactor=nothing)
     soln=DifferentialEquations.solve(prob,Rosenbrock23())
