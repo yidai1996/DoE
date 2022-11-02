@@ -87,21 +87,11 @@ end
 # global kd=0.006
 
 function test1(tt,a)# Simple model: only sucrose limited
-    # a=[mu_maxE ksE msE ysxE] kd=0。006
-    # y=[E S P]
-
-    # Try the previous working model
-    # f(y,p,t)=[(a[4]*y[2]/(a[1]+y[2])*y[1])*(1-y[1]/a[5]) - kd*y[1],
-    #      # -0.5*(tanh(100*y[2])+1)*(0.230*y[2]/(a[1]+y[2])/a[2] + a[3])*y[1]] # X,S
-    #      -max(y[2],0)/y[2]*(a[4]*y[2]/(a[1]+y[2])/a[2] + a[3])*y[1]] # X,S
-
-    # Without product term
-    # a=[mu_maxE ksE msE ysxE] kd=0。006
-    f(y,p,t)=[(a[1]*y[2]/(a[2]+y[2]) - kdE)*y[1], # X(E.coli)
-                max(y[2],0)/y[2]*(-(a[1]*y[2]/(a[2]+y[2])/a[4] + a[3])*y[1])] # Sucrose
-    # f(y,p,t)=[(a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2]) - kdE)*y[1], # X(E.coli)
-    #             max(y[2],0)/y[2]*(-(a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2])/a[4] + a[3])*y[1]), # Sucrose
-                # (max((a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2])-kdE)*y[1],0)/((a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2]) - kdE)*y[1])*a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2])*ysp_g/a[4] + (1-max((a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2])-kdE)*y[1],0)/(a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2])-kdE)*y[1])*ysp_m*a[3])*y[1]] # Product
+    # a=[mu_maxS ksS msS ysxS] kd=0。006
+    # y=[Se N S]
+    f(y,p,t)=[(mu_maxS*y[2]/(ksS+y[2]) - kdS)*y[1],# X(Se)
+         max(y[2],0)/y[2]*( - ((mu_maxS*y[2]/(ksS+y[2]) - kdS)/ysxS+msS)*y[1]), # Ammonia
+         max(y[3],0)/y[3]*( + yspS*(mu_maxS*y[2]/(ksS+y[2]) - kdS)/ysxS)*y[1]] # Sucrose
     # prob=ODEProblem(f,[X0[1],S0[1],PO[1]],(0,d1[end]))
     prob1=ODEProblem(f,[X0[1],S0[1]],(0,d1[end]))
     soln1=OrdinaryDiffEq.solve(prob1,Rosenbrock23())
