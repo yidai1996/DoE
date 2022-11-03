@@ -90,18 +90,14 @@ function test1(tt,a)# Simple model: only sucrose limited
     # a=[mu_maxE ksE msE ysxE] kd=0。006
     # y=[E S P]
 
-    # Try the previous working model
-    # f(y,p,t)=[(a[4]*y[2]/(a[1]+y[2])*y[1])*(1-y[1]/a[5]) - kd*y[1],
-    #      # -0.5*(tanh(100*y[2])+1)*(0.230*y[2]/(a[1]+y[2])/a[2] + a[3])*y[1]] # X,S
-    #      -max(y[2],0)/y[2]*(a[4]*y[2]/(a[1]+y[2])/a[2] + a[3])*y[1]] # X,S
-
     # Without product term
     # a=[mu_maxE ksE msE ysxE] kd=0。006
     f(y,p,t)=[(a[1]*y[2]/(a[2]+y[2]) - kdE)*y[1], # X(E.coli)
                 max(y[2],0)/y[2]*(-(a[1]*y[2]/(a[2]+y[2])/a[4] + a[3])*y[1])] # Sucrose
+    # With product term
     # f(y,p,t)=[(a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2]) - kdE)*y[1], # X(E.coli)
     #             max(y[2],0)/y[2]*(-(a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2])/a[4] + a[3])*y[1]), # Sucrose
-                # (max((a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2])-kdE)*y[1],0)/((a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2]) - kdE)*y[1])*a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2])*ysp_g/a[4] + (1-max((a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2])-kdE)*y[1],0)/(a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2])-kdE)*y[1])*ysp_m*a[3])*y[1]] # Product
+    #             (max((a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2])-kdE)*y[1],0)/((a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2]) - kdE)*y[1])*a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2])*ysp_g/a[4] + (1-max((a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2])-kdE)*y[1],0)/(a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2])-kdE)*y[1])*ysp_m*a[3])*y[1]] # Product
     # prob=ODEProblem(f,[X0[1],S0[1],PO[1]],(0,d1[end]))
     prob1=ODEProblem(f,[X0[1],S0[1]],(0,d1[end]))
     soln1=OrdinaryDiffEq.solve(prob1,Rosenbrock23())
@@ -171,16 +167,19 @@ end
 
 
 function ODEStep1(X,S,P,tspan,a) # Use one ODE solver to solve the whole system
+    # f(y,p,t)=[(a[1]*y[2]/(a[2]+y[2]) - kdE)*y[1], # X(E.coli)
+    #             max(y[2],0)/y[2]*(-(a[1]*y[2]/(a[2]+y[2])/a[4] + a[3])*y[1])] # Sucrose
+
+    # No inhibition from isobutanol
     f(y,p,t)=[(a[1]*y[2]/(a[2]+y[2]) - kdE)*y[1], # X(E.coli)
-                max(y[2],0)/y[2]*(-(a[1]*y[2]/(a[2]+y[2])/a[4] + a[3])*y[1])] # Sucrose
-    # f(y,p,t)=[(a[4]*y[2]/(a[1]+y[2])*y[1])*(1-y[1]/a[5]) - kd*y[1],
-    #      # -0.5*(tanh(100*y[2])+1)*(0.230*y[2]/(a[1]+y[2])/a[2] + a[3])*y[1]] # X,S
-    #      -max(y[2],0)/y[2]*(a[4]*y[2]/(a[1]+y[2])/a[2] + a[3])*y[1]] # X,S
+                max(y[2],0)/y[2]*(-(a[1]*y[2]/(a[2]+y[2])/a[4] + a[3])*y[1]), # Sucrose
+                (max((a[1]*y[2]/(a[2]+y[2])-kdE)*y[1],0)/((a[1]*y[2]/(a[2]+y[2]) - kdE)*y[1])*a[1]*y[2]/(a[2]+y[2])*ysp_g/a[4] + (1-max((a[1]*y[2]/(a[2]+y[2])-kdE)*y[1],0)/(a[1]*y[2]/(a[2]+y[2])-kdE)*y[1])*ysp_m*a[3])*y[1]] # Product
+    # With inhibition
     # f(y,p,t)=[(a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2]) - kdE)*y[1], # X(E.coli)
     #             max(y[2],0)/y[2]*(-(a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2])/a[4] + a[3])*y[1]), # Sucrose
     #             (max((a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2])-kdE)*y[1],0)/((a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2]) - kdE)*y[1])*a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2])*ysp_g/a[4] + (1-max((a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2])-kdE)*y[1],0)/(a[1]*y[2]*(max(1-y[3]/P_star,0.0))^n/(a[2]+y[2])-kdE)*y[1])*ysp_m*a[3])*y[1]] # Product
-    prob1=ODEProblem(f,[X[1],S[1]],(0.0,tspan))
-    prob2=ODEProblem(f,[X[2],S[2]],(0.0,tspan))
+    prob1=ODEProblem(f,[X[1],S[1],P[1]],(0.0,tspan))
+    prob2=ODEProblem(f,[X[2],S[2],P[1]],(0.0,tspan))
     # PositiveDomain(S=nothing;save=true,abstol=nothing,scalefactor=nothing)
     soln1=DifferentialEquations.solve(prob1,Rosenbrock23())
     soln2=DifferentialEquations.solve(prob2,Rosenbrock23())
@@ -195,8 +194,13 @@ function ODEStep1(X,S,P,tspan,a) # Use one ODE solver to solve the whole system
     display(p1)
     savefig("E.coli growth curve fitting.pdf")
     ps=plot(c1,A1[2,:],title="Sucrose consumed curve fitting",ylabel="Sucrose Concentration (g/L)",xlabel="Time (hrs)",label="Fitting line",legend=:bottomright,framestyle=:box)
-    # display(ps)
+    display(ps)
     savefig("Sucrose comsumption curve fitting.pdf")
+    pp=plot(c1,A1[3,:],title="Isobutanol production without inhibition effection",ylabel="Isobutanol Concentration (g/L)",xlabel="Time (hrs)",label="Fitting line of exper a",legend=:bottomright,framestyle=:box)
+    scatter!(d1,P11,kind="scatter",label="Experimental data of a")
+    scatter!(d1,P12,kind="scatter",label="Experimental data of b")
+    display(pp)
+    savefig("Isobutanol production without inhibition effection curve fitting.pdf")
     return c1,c2,A1[1,:],A1[2,:],A2[1,:],A2[2,:]
 end
 
@@ -215,47 +219,25 @@ end
 #     return a,A[1,:],A[2,:],A[3,:],A[4,:]
 # end
 
-function Datafit(Data,p,t)
-    loadProcessData()
-    CC=Data
-    # a=[mu_maxE ksE msE ysxE]
-    # lower_p=[0.0,0.0,0.0,0.0,0.525]
-    lower_p=[0.1,0.1,0.0,1]     #upper_p=[10,1000,1000,0.5,1]
-    fit=curve_fit(test1,t,CC,p; lower=lower_p)#,upper=upper_p,maxIter=10000)
-    Param=fit.param
-    return Param
-end
+# function Datafit(Data,p,t)
+#     loadProcessData()
+#     CC=Data
+#     # a=[mu_maxE ksE msE ysxE]
+#     # lower_p=[0.0,0.0,0.0,0.0,0.525]
+#     lower_p=[0.1,0.1,0.0,1]     #upper_p=[10,1000,1000,0.5,1]
+#     fit=curve_fit(test1,t,CC,p; lower=lower_p)#,upper=upper_p,maxIter=10000)
+#     Param=fit.param
+#     return Param
+# end
 
 # tt=vec(cat(d1[2:5],d1[2:5],dims=1))
 # CC=vec(cat(E11[2:5],E12[2:5],dims=1))
-tt=vec(cat(d1,d1,dims=1))
-CC=vec(cat(E11,E12,dims=1))
+# tt=vec(cat(d1,d1,dims=1))
+# CC=vec(cat(E11,E12,dims=1))
 # lower_p=[0.0,0.0,0.0,0.0,0.525]
 # p0=[.05,5,.2,.5,.56]
-p0=[0.3,0.5,0.1,5]
-Parameters=Datafit(CC,p0,tt)
+# p0=[0.3,0.5,0.1,5]
+
+# Parameters=Datafit(CC,p0,tt)
+Parameters=[0.1 0.3 0.08 0.025]
 ODEStep1(X0,S0,P0,d1[5],Parameters)
-
-# global tt1,X1,S1,P1=ODEStepL(C1[4]*0.396,2.0,0,T1[end]-T1[4])
-# global tt2,X2,S2,P2=ODEStepL(C2[4]*0.396,1.0,0,T1[end]-T1[4])
-# global tt3,X3,S3,P3=ODEStepL(C3[4]*0.396,0.75,0,T1[end]-T1[4])
-# global tt4,X4,S4,P4=ODEStepL(C4[4]*0.396,0.5,0,T1[end]-T1[4])
-# global tt5,X5,S5,P5=ODEStepL(C5[4]*0.396,0.25,0,T1[end]-T1[4])
-# plot(T1,[C1,C2,C3,C4,C5],xaxis="Time/h", yaxis="OD600",seriestype=:scatter,title="Experimental and model analysis of Ecoli.W (Sofia)",label="Experiment",legend=:topleft)
-# plot!([tt1.+T1[4],tt2.+T1[4],tt3.+T1[4],tt4.+T1[4],tt5.+T1[4]],[X1,X2,X3,X4,X5]/0.396,label="Model")
-
-# tt=vec(T1)
-# CC=vec(C2)
-# p0=[1.1, 1.1, 1.1] #a=[ks, ysx, ms]
-# lower_p=[0.0,0.0,0.0]
-# fit=curve_fit(test,tt,CC,p0; lower=lower_p)
-# ks,ysx,ms=fit.param
-# global tt2,X2,S2,P2=ODEStep(C2[1]*0.396,1.0,0,tt[end])
-# plot(T1,C2,xaxis="Time/h", yaxis="OD600",seriestype=:scatter,title="Experimental and model analysis of Ecoli.W (Sofia)",label="Experiment")
-# plot!(tt2,X2/0.396,label="Model")
-# plot(T3,C3,xaxis="Time/h", yaxis="OD600",seriestype=:scatter,title="Experimental and model analysis of Ecoli.W (Sofia)",label="Experiment")
-# plot!(tt1,X1/0.396,label="Model")
-# plot(T4,C4,xaxis="Time/h", yaxis="OD600",seriestype=:scatter,title="Experimental and model analysis of Ecoli.W (Sofia)",label="Experiment")
-# plot!(tt1,X1/0.396,label="Model")
-# plot(T5,C5,xaxis="Time/h", yaxis="OD600",seriestype=:scatter,title="Experimental and model analysis of Ecoli.W (Sofia)",label="Experiment")
-# plot!(tt1,X1/0.396,label="Model")
