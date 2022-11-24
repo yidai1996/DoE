@@ -91,7 +91,7 @@ function test1(tt,a)# Simple model: only sucrose limited
     # y=[A S N]
     f(y,p,t)=[(a[1]*y[2]/(a[2]+y[2]) - kdA)*y[1],# X(Av)
          max(y[2],0)/y[2]*(- ((a[1]*y[2]/(a[2]+y[2]) - kdA)/a[4]+a[3])*y[1]), # Sucrose
-         max(y[3],0)/y[3]*(yspA*(a[1]*y[2]/(a[2]+y[2]) - kdA)*y[1]/a[4]] # Ammonia
+         max(y[3],0)/y[3]*(yspA*(a[1]*y[2]/(a[2]+y[2]) - kdA)*y[1]/a[4])] # Ammonia
 
     # prob=ODEProblem(f,[X0[1],S0[1],PO[1]],(0,d1[end]))
     prob1=ODEProblem(f,[X0[1],S0[1]],(0,d1[end]))
