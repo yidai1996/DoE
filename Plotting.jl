@@ -1,0 +1,36 @@
+using Plots, Printf, XLSX
+using Plots.PlotMeasures
+function MyPlots()
+    xf = XLSX.readxlsx("G:\\My Drive\\Research\\DOE project\\Modeling\\Triculture\\modified triculture model\\triculture test with inhibition from isobutanol\\saioutAandS_0.02\\Profiles of All Microbial with inhibition.xlsx")
+    sh = xf["Sheet1"]
+    tt = convert(Array{Float64,2},sh["A2:A212"])
+    E = zeros(length(tt))
+    println(E)
+    A = zeros(length(tt))
+    S = zeros(length(tt))
+    C = zeros(length(tt))
+    N = zeros(length(tt))
+    P = zeros(length(tt))
+    E = convert(Array{Float64,2},sh["B2:B212"])
+    A = convert(Array{Float64,2},sh["C2:C212"])
+    S = convert(Array{Float64,2},sh["D2:D212"])
+    C = convert(Array{Float64,2},sh["E2:E212"])
+    N = convert(Array{Float64,2},sh["F2:F212"])
+    P = convert(Array{Float64,2},sh["G2:G212"])
+    
+    p1=plot(tt,E,label="E.coli",xlabel="times (h)",ylabel="Concentration (g)",legend=:topright,framestyle=:box)
+    plot!(tt,P, label="Isobutanol")
+    display(p1)
+    savefig("With inhibition only E and P.pdf")
+    # savefig("With inhibition only E and P up to 40 hrs.pdf")
+    p2=plot(tt,A, label="A.v.",xlabel="times (h)",ylabel="Concentration (g)",legend=:topright,framestyle=:box)
+    # plot!(tt,A, label="A.v.")
+    plot!(tt,S, label="S.e.")
+    plot!(tt,C, label="Sucrose")
+    plot!(tt,N, label="Ammonia")
+        
+    # p_all=plot(p1,p2,p3,p4,layout=(2,2),legend=:topright,xtickfontsize=6,ytickfontsize=6,xguidefontsize=8,yguidefontsize=8,framestyle=:box)
+    # display(p2)
+    # savefig("Without inhibition.pdf")
+    savefig("With inhibition.pdf")
+end
