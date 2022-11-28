@@ -28,7 +28,7 @@ function loadProcessData()
     global ysp_g=0.3 # 
     global ysp_m=0.2 # 
     global yspA=2 # https://microbialcellfactories.biomedcentral.com/track/pdf/10.1186/s12934-020-01362-9.pdf
-    global yspS=0.5 #
+    global yspS=0.4 #
     # global ysx=0.06 #http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     # global ysx=1.017 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     # global ysx=3 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
@@ -53,7 +53,7 @@ function loadProcessData()
     global kLaO=2.766*60 # 1/h # https://www.sciencedirect.com/science/article/pii/S0032959200002727
     global xO2_sat=7.5/16/1000 # mol/L https://www.waterboards.ca.gov/water_issues/programs/swamp/docs/cwt/guidance/3110en.pdf
     global O20=xO2_sat
-    global tspan1=48 # h David's thesis
+    global tspan1=72 # h David's thesis
     global tspan2=100
     global saiin=0.05  # L/min
     global saioutE=0.01 # David's thesis
@@ -65,9 +65,9 @@ function loadProcessData()
     global DA=saioutA/V # 0.2
     global DS=saioutS/V # 0.2
     global D0=[DE DA DS]
-    global KA=300
-    global KS=300
-    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\Triculture\\coculture\\Monod equation\\batch\\yspA_2_yspS_0.5"
+    global KA=30
+    global KS=30
+    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\Triculture\\coculture\\Combined model\\yspS_0.4"
     println("Parameters Loaded!")
 end
 
@@ -78,27 +78,27 @@ function CocultureGrowth() # Continuous flow
     global dA1dt=zeros(size(tt1)[1])
     global dS1dt=zeros(size(tt1)[1])
     for i=1:size(tt1)[1]
-        dA1dt[i]=(mu_maxA*Ct1[i]/(ksA+Ct1[i]) - kdA)*At1[i]
+        dA1dt[i]=(mu_maxA*Ct1[i]/(ksA+Ct1[i])*(KA-At1[i])/KA - kdA)*At1[i]
         # dA1dt[i]=mu_maxA*(KA-At1[i])/KA*At1[i]
     end
     println(size(tt1)[1])
     for i=1:size(tt1)[1]
-        dS1dt[i]=(mu_maxS*Nt1[i]/(ksS+Nt1[i]) - kdS)*St1[i]
+        dS1dt[i]=(mu_maxS*Nt1[i]/(ksS+Nt1[i])*(KS-St1[i])/KS - kdS)*St1[i]
         # dS1dt[i]=mu_maxS*(KS-St1[i])/KS*St1[i]
     end
     plot(tt1,dA1dt,label="Growth rate of Av when biculture",xaxis="Time(hr)",yaxis="g/L/h",title="Start up profiles for co-culture",framestyle=:box,legend=:topleft)
     plot!(tt1,dS1dt,label="Growth rate of Se when biculture",xaxis="Time(hr)",yaxis="g/L/h",)
-    savefig("Coculture profile monod equation of growth rate tspan1_48.pdf")
-    plot(tt1,At1,label="Av concentration profile when biculture",xaxis="Time(hr)",yaxis="Av(g/L)",framestyle=:box,legend=:topleft)
-    plot!(tt1,St1,label="Se concentration profile when biculture",xaxis="Time(hr)",yaxis="Se(g/L)")
-    savefig("Coculture profile monod equation of microbial profile tspan1_48.pdf")
-    plot(tt1,Ct1,label="Sucrose concentration profile when biculture",xaxis="Time(hr)",yaxis="Sucrose(g/L)",framestyle=:box,legend=:topleft)
-    plot!(tt1,Nt1,label="Ammonia concentration profile when biculture",xaxis="Time(hr)",yaxis="Ammonia(g/L)")
-    savefig("Coculture profile monod equation of nutrient tspan1_48.pdf")
+    savefig("Coculture profile combined model of growth rate tspan1_72.pdf")
+    plot(tt1,At1,label="Av concentration profile when biculture",xaxis="Time(hr)",yaxis="g/L",framestyle=:box,legend=:topleft)
+    plot!(tt1,St1,label="Se concentration profile when biculture",xaxis="Time(hr)",yaxis="g/L")
+    savefig("Coculture profile combined model of microbial profile tspan1_72.pdf")
+    plot(tt1,Ct1,label="Sucrose concentration profile when biculture",xaxis="Time(hr)",yaxis="g/L",framestyle=:box,legend=:topleft)
+    plot!(tt1,Nt1,label="Ammonia concentration profile when biculture",xaxis="Time(hr)",yaxis="g/L")
+    savefig("Coculture profile combined model of nutrient tspan1_72.pdf")
 
     # Store data into excel files
     println("writing plots to files")
-    top_excel_file = out_dir * "\\Profiles of All Microbial without inhibition tspan_48.xlsx"
+    top_excel_file = out_dir * "\\Profiles of All Microbial without inhibition tspan_72.xlsx"
     column_names = ["times (hr)","Av","Se", "Sucrose", "Ammonia","Growth rate of Av","Growth rate of Se"]
     data=[tt1,At1,St1,Ct1,Nt1,dA1dt,dS1dt]
     # write to excel file
@@ -246,11 +246,16 @@ function Startup(A,S,N,C,tspan1) # batch
     # #      mu_maxS*(KS-y[2])/KS*y[2],# X(Se)
     #      max(y[3],0)/y[3]*( - (mu_maxA*(KA-y[1])/KA*y[1]/ysxA+msA)*y[1] + yspS*mu_maxS*(KS-y[2])/KS*y[2]/ysxS*y[2]), # Sucrose
     #      max(y[4],0)/y[4]*(yspA*mu_maxA*(KA-y[1])/KA*y[1]/ysxA  - (mu_maxS*(KS-y[2])/KS*y[2]/ysxS+msS)*y[2])] # Ammonia
+    # Combined equations 
+    f(y,p,t)=[(mu_maxA*y[3]/(ksA+y[3])*(KA-y[1])/KA - kdA)*y[1],# X(Av)
+         (mu_maxS*y[4]/(ksS+y[4])*(KS-y[2])/KS - kdS)*y[2],# X(Se)
+         max(y[3],0)/y[3]*( - (mu_maxA*y[3]/(ksA+y[3])*(KA-y[1])/KA/ysxA)*y[1] + yspS*(mu_maxS*y[4]/(ksS+y[4]))*(KS-y[2])/KS/ysxS*y[2]), # Sucrose
+         max(y[4],0)/y[4]*(yspA*mu_maxA*y[4]/(ksA+y[4])*(KA-y[1])/KA*y[1]/ysxA  - (mu_maxS*y[4]/(ksS+y[4])/ysxS)*(KS-y[2])/KS*y[2])] # Ammonia
     # Monod Equation
-    f(y,p,t)=[(mu_maxA*y[3]/(ksA+y[3]) - kdA)*y[1],# X(Av)
-         (mu_maxS*y[4]/(ksS+y[4]) - kdS)*y[2],# X(Se)
-         max(y[3],0)/y[3]*( - (mu_maxA*y[3]/(ksA+y[3])/ysxA)*y[1] + yspS*(mu_maxS*y[4]/(ksS+y[4]))/ysxS*y[2]), # Sucrose
-         max(y[4],0)/y[4]*(yspA*mu_maxA*y[4]/(ksA+y[4])*y[1]/ysxA  - (mu_maxS*y[4]/(ksS+y[4])/ysxS)*y[2])] # Ammonia
+    # f(y,p,t)=[(mu_maxA*y[3]/(ksA+y[3]) - kdA)*y[1],# X(Av)
+    #      (mu_maxS*y[4]/(ksS+y[4]) - kdS)*y[2],# X(Se)
+    #      max(y[3],0)/y[3]*( - (mu_maxA*y[3]/(ksA+y[3])/ysxA)*y[1] + yspS*(mu_maxS*y[4]/(ksS+y[4]))/ysxS*y[2]), # Sucrose
+    #      max(y[4],0)/y[4]*(yspA*mu_maxA*y[4]/(ksA+y[4])*y[1]/ysxA  - (mu_maxS*y[4]/(ksS+y[4])/ysxS)*y[2])] # Ammonia
         #  max(y[3],0)/y[3]*( - (mu_maxA*y[3]/(ksA+y[3])/ysxA+msA)*y[1] + yspS*(mu_maxS*y[4]/(ksS+y[4]))/ysxS*y[2]), # Sucrose
         #  max(y[4],0)/y[4]*(yspA*mu_maxA*y[4]/(ksA+y[4])*y[1]/ysxA  - (mu_maxS*y[4]/(ksS+y[4])/ysxS+msS)*y[2])] # Ammonia
     prob=ODEProblem(f,[A,S,N,C],(0.0,tspan1))

@@ -27,14 +27,14 @@ function loadProcessData()
     global P_star=0.20
     global ysp_g=0.3 # 
     global ysp_m=0.2 # 
-    global yspA=1.9 # https://microbialcellfactories.biomedcentral.com/track/pdf/10.1186/s12934-020-01362-9.pdf
-    global yspS=1.9 #
+    global yspA=2 # https://microbialcellfactories.biomedcentral.com/track/pdf/10.1186/s12934-020-01362-9.pdf
+    global yspS=0.4 #
     # global ysx=0.06 #http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     # global ysx=1.017 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     # global ysx=3 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     global ysxE=1.017 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     global ysxE_NH4=1.017
-    global ysxA=0.160 # https://www.researchgate.net/figure/Growth-kinetics-of-Azotobacter-vinelandii-in-medium-before-and-after-optimization_tbl2_301753155
+    global ysxA=0.17 # https://www.researchgate.net/figure/Growth-kinetics-of-Azotobacter-vinelandii-in-medium-before-and-after-optimization_tbl2_301753155
     global ysxS=0.17 # https://www.sciencedirect.com/science/article/pii/S0960852406004792
     # global D0= 0.68 # h^-1 initial dilusion rate
     global A0=0.01 # g/l initial substrate feeding concentration
@@ -53,7 +53,7 @@ function loadProcessData()
     global kLaO=2.766*60 # 1/h # https://www.sciencedirect.com/science/article/pii/S0032959200002727
     global xO2_sat=7.5/16/1000 # mol/L https://www.waterboards.ca.gov/water_issues/programs/swamp/docs/cwt/guidance/3110en.pdf
     global O20=xO2_sat
-    global tspan1=48 # h David's thesis
+    global tspan1=72 # h David's thesis
     global tspan2=100
     global saiin=0.05  # L/min
     global saioutE=0.01 # David's thesis
@@ -67,7 +67,7 @@ function loadProcessData()
     global D0=[DE DA DS]
     global KA=30
     global KS=30
-    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\Triculture\\modified triculture model"
+    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\Triculture\\coculture\\Logistic model\\all parameters same"
     println("Parameters Loaded!")
 end
 
@@ -88,21 +88,21 @@ function CocultureGrowth() # Continuous flow
     end
     plot(tt1,dA1dt,label="Growth rate of Av when biculture",xaxis="Time(hr)",yaxis="g/L/h",title="Start up profiles for co-culture",framestyle=:box,legend=:topleft)
     plot!(tt1,dS1dt,label="Growth rate of Se when biculture",xaxis="Time(hr)",yaxis="g/L/h",)
-    savefig("Coculture profile logistic model of growth rate tspan1_48.pdf")
-    plot(tt1,At1,label="Av concentration profile when biculture",xaxis="Time(hr)",yaxis="Av(g/L)",framestyle=:box,legend=:topleft)
-    plot!(tt1,St1,label="Se concentration profile when biculture",xaxis="Time(hr)",yaxis="Se(g/L)")
-    savefig("Coculture profile logisitc model of microbial profile tspan1_48.pdf")
-    # plot(tt1,Ct1,label="Sucrose concentration profile when biculture",xaxis="Time(hr)",yaxis="Sucrose(g/L)",framestyle=:box,legend=:topleft)
-    plot(tt1,Nt1,label="Ammonia concentration profile when biculture",xaxis="Time(hr)",yaxis="Ammonia(g/L)")
-    savefig("Coculture profile logistic model of nutrient(only ammonia) tspan1_48.pdf")
+    savefig("Coculture profile logistic model of growth rate tspan1_72.pdf")
+    plot(tt1,At1,label="Av concentration profile when biculture",xaxis="Time(hr)",yaxis="g/L",framestyle=:box,legend=:topleft)
+    plot!(tt1,St1,label="Se concentration profile when biculture",xaxis="Time(hr)",yaxis="g/L")
+    savefig("Coculture profile logisitc model of microbial profile tspan1_72.pdf")
+    plot(tt1,Ct1,label="Sucrose concentration profile when biculture",xaxis="Time(hr)",yaxis="g/L",framestyle=:box,legend=:topleft)
+    plot!(tt1,Nt1,label="Ammonia concentration profile when biculture",xaxis="Time(hr)",yaxis="g/L")
+    savefig("Coculture profile logistic model of nutrient tspan1_72.pdf")
 
     # Store data into excel files
-    # println("writing plots to files")
-    # top_excel_file = out_dir * "\\Profiles of All Microbial without inhibition.xlsx"
-    # column_names = ["times (hr)","Ec","Av","Se", "Sucrose", "Ammonia","Isobutanol"]
-    # data=[ttt,final_Et,final_At,final_St,final_Ct,final_Nt,final_Pt]
-    # # write to excel file
-    # XLSX.writetable(top_excel_file, data, column_names)
+    println("writing plots to files")
+    top_excel_file = out_dir * "\\Profiles of All Microbial without inhibition tspan_72.xlsx"
+    column_names = ["times (hr)","Av","Se", "Sucrose", "Ammonia","Growth rate of Av","Growth rate of Se"]
+    data=[tt1,At1,St1,Ct1,Nt1,dA1dt,dS1dt]
+    # write to excel file
+    XLSX.writetable(top_excel_file, data, column_names)
   
 end
 
@@ -241,11 +241,11 @@ end
 function Startup(A,S,N,C,tspan1) # batch
     # Logistic equation
     f(y,p,t)=[mu_maxA*(KA-y[1])/KA*y[1]-kdA*y[1],# X(Av) with death rate
-    mu_maxS*(KS-y[2])/KS*y[2]-kdS*y[2],# X(Se)
+         mu_maxS*(KS-y[2])/KS*y[2]-kdS*y[2],# X(Se)
     # f(y,p,t)=[mu_maxA*(KA-y[1])/KA*y[1],# X(Av)
     #      mu_maxS*(KS-y[2])/KS*y[2],# X(Se)
-         max(y[3],0)/y[3]*( - (mu_maxA*(KA-y[1])/KA*y[1]/ysxA+msA)*y[1] + yspS*mu_maxS*(KS-y[2])/KS*y[2]/ysxS*y[2]), # Sucrose
-         max(y[4],0)/y[4]*(yspA*mu_maxA*(KA-y[1])/KA*y[1]/ysxA  - (mu_maxS*(KS-y[2])/KS*y[2]/ysxS+msS)*y[2])] # Ammonia
+         max(y[3],0)/y[3]*( - (mu_maxA*(KA-y[1])/KA/ysxA+msA)*y[1] + yspS*mu_maxS*(KS-y[2])/KS/ysxS*y[2]), # Sucrose
+         max(y[4],0)/y[4]*(yspA*mu_maxA*(KA-y[1])/KA/ysxA*y[1]  - (mu_maxS*(KS-y[2])/KS/ysxS+msS)*y[2])] # Ammonia
     # Monod Equation
     # f(y,p,t)=[(mu_maxA*y[3]/(ksA+y[3]) - kdA)*y[1],# X(Av)
     #      (mu_maxS*y[4]/(ksS+y[4]) - kdS)*y[2],# X(Se)
