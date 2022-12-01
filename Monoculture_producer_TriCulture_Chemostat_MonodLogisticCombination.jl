@@ -3,12 +3,13 @@
 using Plots, JuMP, Ipopt, DifferentialEquations, NLsolve, XLSX
 
 function loadProcessData()
-    global mu_maxE=0.34 #h^-1 from David's thesis(meeting slides from Prof.Lin) 1.7
+    # global mu_maxE=1.7 #h^-1 from David's thesis(meeting slides from Prof.Lin) 1.7
+    global mu_maxE=0.18 #h^-1 from experimental data fitting (October C/N=5)
     global mu_maxA=0.34 #h^-1 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5478974/
     # global mu_maxA=0.091 #h^-1 https://www.sciencedirect.com/science/article/pii/S1369703X02001766
     # global mu_maxS=0.0504 #h^-1 https://onlinelibrary.wiley.com/doi/full/10.1002/cjce.22154
     global mu_maxS=0.34 #h^-1 https://onlinelibrary.wiley.com/doi/full/10.1002/cjce.22154
-    global msE=0.1 # gsubstrate/gbiomass/h +-0.0008 h^-1 from David's thesis  substrate used for maintenence
+    global msE=0.98 # gsubstrate/gbiomass/h +-0.0008 h^-1 from David's thesis  substrate used for maintenence
     global msE_NH4=0.1 # gsubstrate/gbiomass/h
     # global msA=0.31 # gsubstrate/gbiomass/h
     global msA=0.22 # gsubstrate/gbiomass/h
@@ -18,7 +19,7 @@ function loadProcessData()
     global kdE=0.003 #h^-1 cell death rate from David's thesis
     global kdA=0.003 #h^-1
     global kdS=0.003 #h^-1
-    global ksE=0.1 # gbiomass/L +-0.004 from David's thesis
+    global ksE=0.27 # gbiomass/L +-0.004 from David's thesis
     global ksA=0.1 # gbiomass/L https://www.sciencedirect.com/science/article/pii/S1369703X02001766
     global ksS=0.1 # gbiomass/L https://onlinelibrary.wiley.com/doi/full/10.1111/j.1529-8817.2005.04063.x
     global ksE_NH4=0.1
@@ -28,12 +29,12 @@ function loadProcessData()
     global ysp_g=0.3 # 
     global ysp_m=0.2 # 
     global yspA=2 # https://microbialcellfactories.biomedcentral.com/track/pdf/10.1186/s12934-020-01362-9.pdf
-    global yspS=0.6 #
+    global yspS=2 #
     # global ysx=0.06 #http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     # global ysx=1.017 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     # global ysx=3 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
-    global ysxE=1.017 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
-    global ysxE_NH4=1.017
+    global ysxE=1 # guessing from Data fitting of October E.coli
+    global ysxE_NH4=1
     global ysxA=0.17 # https://www.researchgate.net/figure/Growth-kinetics-of-Azotobacter-vinelandii-in-medium-before-and-after-optimization_tbl2_301753155
     global ysxS=0.17 # https://www.sciencedirect.com/science/article/pii/S0960852406004792
     # global D0= 0.68 # h^-1 initial dilusion rate
@@ -53,7 +54,7 @@ function loadProcessData()
     global kLaO=2.766*60 # 1/h # https://www.sciencedirect.com/science/article/pii/S0032959200002727
     global xO2_sat=7.5/16/1000 # mol/L https://www.waterboards.ca.gov/water_issues/programs/swamp/docs/cwt/guidance/3110en.pdf
     global O20=xO2_sat
-    global tspan1=48 # h David's thesis
+    global tspan1=12 # h David's thesis
     global tspan2=100
     global saiin=0.05  # L/min
     global saioutE=0.01 # David's thesis
@@ -67,11 +68,12 @@ function loadProcessData()
     global D0=[DE DA DS]
     global KA=30
     global KS=30
-    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\Triculture\\coculture\\Combined model\\yspS_0.6"
+    global KE=60
+    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\Triculture\\modified triculture model\\triculture test without inhibition from isobutanol (Combined Model)"
     println("Parameters Loaded!")
 end
 
-function CocultureGrowth() # Continuous flow
+function CocultureGrowth() # Batch
     loadProcessData()
     global tt1,At1,St1,Ct1,Nt1=Startup(A0,S0,N0,C0,tspan1)
     # Startup stage
@@ -110,15 +112,15 @@ function AllGrowth() # Continuous flow
     loadProcessData()
     global tt1,At1,St1,Ct1,Nt1=Startup(A0,S0,N0,C0,tspan1)
     # Startup stage
-    global dA1dt=zeros(size(tt1)[1])
-    global dS1dt=zeros(size(tt1)[1])
-    for i=1:size(tt1)[1]
-        dA1dt[i]=(mu_maxA*Ct1[i]/(ksA+Ct1[i]) - kdA)*At1[i]
-    end
+    # global dA1dt=zeros(size(tt1)[1])
+    # global dS1dt=zeros(size(tt1)[1])
+    # for i=1:size(tt1)[1]
+    #     dA1dt[i]=(mu_maxA*Ct1[i]/(ksA+Ct1[i]) - kdA)*At1[i]
+    # end
     println(size(tt1)[1])
-    for i=1:size(tt1)[1]
-        dS1dt[i]=(mu_maxS*Nt1[i]/(ksS+Nt1[i]) - kdS)*St1[i]
-    end
+    # for i=1:size(tt1)[1]
+    #     dS1dt[i]=(mu_maxS*Nt1[i]/(ksS+Nt1[i]) - kdS)*St1[i]
+    # end
     # plot(tt1,dA1dt,label="Growth rate of Av when biculture",xaxis="Time(hr)",yaxis="g/L/h",title="Start up profiles for co-culture",framestyle=:box,legend=:topleft)
     # plot!(tt1,dS1dt,label="Growth rate of Se when biculture",xaxis="Time(hr)",yaxis="g/L/h",)
     # plot!(tt1,At1,label="Av concentration profile when biculture",xaxis="Time(hr)",yaxis="Av(g/L)")
@@ -206,27 +208,27 @@ function AllGrowth() # Continuous flow
 
     final_Et=cat(zeros(size(tt1)[1]),Et;dims=(1,1))
     plot(ttt,final_Et/0.396,title="E.coli concentration profile",xaxis="Time(hr)",yaxis="OD600",label=false)
-    savefig("Ecoli_test triculture.png")
+    savefig("Ecoli_test triculture.pdf")
 
     final_At=cat(At1,At;dims=(1,1))
     plot(ttt,final_At,title="Av concentration profile",xaxis="Time(hr)",yaxis="Av(g/L)",label=false)
-    savefig("Av_test triculture.png")
+    savefig("Av_test triculture.pdf")
 
     final_St=cat(St1,St;dims=(1,1))
     plot(ttt,final_St,title="Se concentration profile",xaxis="Time(hr)",yaxis="Se(g/L)",label=false)
-    savefig("Se_test triculture.png")
+    savefig("Se_test triculture.pdf")
 
     final_Ct=cat(Ct1,Ct;dims=(1,1))
     plot(ttt,final_Ct,title="Sucrose concentration profile",xaxis="Time(hr)",yaxis="Sucrose(g/L)",label=false)
-    savefig("Sucrose_test triculture.png")
+    savefig("Sucrose_test triculture.pdf")
 
     final_Nt=cat(Nt1,Nt;dims=(1,1))
     plot(ttt,final_Nt,title="Ammonia concentration profile",xaxis="Time(hr)",yaxis="Ammonia(g/L)",label=false)
-    savefig("Ammonia_test triculture.png")
+    savefig("Ammonia_test triculture.pdf")
 
     final_Pt=cat(zeros(size(tt1)[1]),Pt;dims=(1,1))
     plot(ttt,final_Pt,title="Product concentration profile",xaxis="Time(hr)",yaxis="Isobutanol(g/L)",label=false)
-    savefig("Isobutanol_test.png")
+    savefig("Isobutanol_test.pdf")
 
     # Store data into excel files
     println("writing plots to files")
@@ -282,12 +284,17 @@ function Tripartite(D,E,A,S,N,C,P,tspan2) # Use one ODE solver to solve the whol
     #      1/Vt*(max((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1])*mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])*ysp_g/ysxE + (1-max((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1])*ysp_m*msE)*y[1] - sum(D)*y[6]] # Product
 
     # Without inhibition
-    f(y,p,t)=[(mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1]-D[1]*y[1], # X(E.coli)
-         (mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]-D[2]*y[2],# X(Av)
-         (mu_maxS*y[5]/(ksS+y[5]) - kdS)*y[3]-D[3]*y[3],# X(Se)
-         1/Vt*max(y[4],0)/y[4]*(-(mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE + msE)*y[1] - ((mu_maxA*y[4]/(ksA+y[4]) - kdA)/ysxA+msA)*y[2] + yspS*(mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS*y[3]  - sum(D)*y[4]), # Sucrose
-         1/Vt*max(y[5],0)/y[5]*(yspA*(mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]/ysxA - (mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE_NH4 + msE_NH4)*y[1] - ((mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS+msS)*y[3] - sum(D)*y[5]), # Ammonia
-         1/Vt*(max((mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/((mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1])*mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])*ysp_g/ysxE + (1-max((mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/((mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1]))*ysp_m*msE)*y[1] - sum(D)*y[6]] # Product
+    f(y,p,t)=[(mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])  - kdE)*y[1]-D[1]*y[1], # X(E.coli)
+        (mu_maxA*y[4]/(ksA+y[4])*(KA-y[2])/KA - kdA)*y[2],# X(Av)
+        (mu_maxS*y[5]/(ksS+y[5])*(KS-y[3])/KS - kdS)*y[3],# X(Se)
+        #  (mu_maxA*y[4]/(ksA+y[4])*(KA-y[2])/KA - kdA)*y[2]-D[2]*y[2],# X(Av)
+        #  (mu_maxS*y[5]/(ksS+y[5])*(KS-y[3])/KS - kdS)*y[3]-D[3]*y[3],# X(Se)
+        1/Vt*max(y[4],0)/y[4]*(-(mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE + msE)*y[1] - ((mu_maxA*y[4]/(ksA+y[4]) - kdA)/ysxA+msA)*y[2] + yspS*(mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS*y[3]  - D[1]*y[4]), # Sucrose
+        1/Vt*max(y[5],0)/y[5]*(yspA*(mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]/ysxA - (mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE_NH4 + msE_NH4)*y[1] - ((mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS+msS)*y[3] - D[1]*y[5]), # Ammonia
+        1/Vt*(max((mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/((mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1])*mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])*ysp_g/ysxE + (1-max((mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/((mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1]))*ysp_m*msE)*y[1] - D[1]*y[6]]
+        #  1/Vt*max(y[4],0)/y[4]*(-(mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE + msE)*y[1] - ((mu_maxA*y[4]/(ksA+y[4]) - kdA)/ysxA+msA)*y[2] + yspS*(mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS*y[3]  - sum(D)*y[4]), # Sucrose
+        #  1/Vt*max(y[5],0)/y[5]*(yspA*(mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]/ysxA - (mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE_NH4 + msE_NH4)*y[1] - ((mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS+msS)*y[3] - sum(D)*y[5]), # Ammonia
+        #  1/Vt*(max((mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/((mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1])*mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])*ysp_g/ysxE + (1-max((mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/((mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1]))*ysp_m*msE)*y[1] - sum(D)*y[6]] # Product
 
     prob=ODEProblem(f,[E,A,S,N,C,P],(0.0,tspan2))
     # PositiveDomain(S=nothing;save=true,abstol=nothing,scalefactor=nothing)

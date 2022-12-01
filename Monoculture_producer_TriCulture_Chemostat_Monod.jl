@@ -28,13 +28,13 @@ function loadProcessData()
     global ysp_g=0.3 # 
     global ysp_m=0.2 # 
     global yspA=2 # https://microbialcellfactories.biomedcentral.com/track/pdf/10.1186/s12934-020-01362-9.pdf
-    global yspS=0.5 #
+    global yspS=1 #
     # global ysx=0.06 #http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     # global ysx=1.017 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     # global ysx=3 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     global ysxE=1.017 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     global ysxE_NH4=1.017
-    global ysxA=0.17 # https://www.researchgate.net/figure/Growth-kinetics-of-Azotobacter-vinelandii-in-medium-before-and-after-optimization_tbl2_301753155
+    global ysxA=0.5 # https://www.researchgate.net/figure/Growth-kinetics-of-Azotobacter-vinelandii-in-medium-before-and-after-optimization_tbl2_301753155
     global ysxS=0.17 # https://www.sciencedirect.com/science/article/pii/S0960852406004792
     # global D0= 0.68 # h^-1 initial dilusion rate
     global A0=0.01 # g/l initial substrate feeding concentration
@@ -67,7 +67,7 @@ function loadProcessData()
     global D0=[DE DA DS]
     global KA=300
     global KS=300
-    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\Triculture\\coculture\\Monod equation\\batch\\yspA_2_yspS_0.5"
+    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\Triculture\\coculture\\Monod equation\\batch\\ysxA changed yspS_1"
     println("Parameters Loaded!")
 end
 
