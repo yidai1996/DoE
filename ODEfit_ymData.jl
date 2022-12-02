@@ -57,7 +57,7 @@ function loadProcessData()
 
     println("Parameters Loaded!")
 
-    xf=XLSX.readxlsx("G:\\My Drive\\Research\\DOE project\\Modeling\\Triculture\\roughly data fitting (monoculture without union media)\\E.coli collected in October\\20221021_CN_Ec_OD.xlsx")
+    xf=XLSX.readxlsx("G:\\My Drive\\Research\\DOE project\\Modeling\\Data fitting\\Monoculture with union media\\E.coli collected in October\\20221021_CN_Ec_OD.xlsx")
     sh1=xf["CN_OD"]
     global d1=convert(Array{Float64,2},sh1["A22:A28"])
     global E1=0.396*convert(Array{Float64,2},sh1["B22:B28"]) # C:N=5
