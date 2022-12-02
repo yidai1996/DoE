@@ -3,38 +3,50 @@
 using Plots, JuMP, Ipopt, DifferentialEquations, NLsolve, XLSX
 
 function loadProcessData()
+    # Fitted parameters:
+    global mu_maxA=0.11
+    global mu_maxS=0.0217
+    global msA=4
+    global msS=0.79
+    global ksA=0.520
+    global ksS=0.344
+    global ysxA=2.451
+    global ysxS=2.54
+    global kdA=0.006
+    global kdS=0
+    global yspA=0.018
     global mu_maxE=0.34 #h^-1 from David's thesis(meeting slides from Prof.Lin) 1.7
-    global mu_maxA=0.34 #h^-1 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5478974/
+    # global mu_maxA=0.34 #h^-1 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5478974/
     # global mu_maxA=0.091 #h^-1 https://www.sciencedirect.com/science/article/pii/S1369703X02001766
     # global mu_maxS=0.0504 #h^-1 https://onlinelibrary.wiley.com/doi/full/10.1002/cjce.22154
-    global mu_maxS=0.34 #h^-1 https://onlinelibrary.wiley.com/doi/full/10.1002/cjce.22154
+    # global mu_maxS=0.34 #h^-1 https://onlinelibrary.wiley.com/doi/full/10.1002/cjce.22154
     global msE=0.1 # gsubstrate/gbiomass/h +-0.0008 h^-1 from David's thesis  substrate used for maintenence
     global msE_NH4=0.1 # gsubstrate/gbiomass/h
     # global msA=0.31 # gsubstrate/gbiomass/h
-    global msA=0.22 # gsubstrate/gbiomass/h
-    global msS=0.22 # gsubstrate/gbiomass/h
+    # global msA=0.22 # gsubstrate/gbiomass/h
+    # global msS=0.22 # gsubstrate/gbiomass/h
     global T0=303 #K
     global pH=7 # from Sofia medium
     global kdE=0.003 #h^-1 cell death rate from David's thesis
-    global kdA=0.003 #h^-1
-    global kdS=0.003 #h^-1
+    # global kdA=0.003 #h^-1
+    # global kdS=0.003 #h^-1
     global ksE=0.1 # gbiomass/L +-0.004 from David's thesis
-    global ksA=0.1 # gbiomass/L https://www.sciencedirect.com/science/article/pii/S1369703X02001766
-    global ksS=0.1 # gbiomass/L https://onlinelibrary.wiley.com/doi/full/10.1111/j.1529-8817.2005.04063.x
+    # global ksA=0.1 # gbiomass/L https://www.sciencedirect.com/science/article/pii/S1369703X02001766
+    # global ksS=0.1 # gbiomass/L https://onlinelibrary.wiley.com/doi/full/10.1111/j.1529-8817.2005.04063.x
     global ksE_NH4=0.1
     # global ki=0.3 # my guessing
     global n=4.86
     global P_star=0.20
     global ysp_g=0.3 # 
     global ysp_m=0.2 # 
-    global yspA=2 # https://microbialcellfactories.biomedcentral.com/track/pdf/10.1186/s12934-020-01362-9.pdf
-    global yspS=1 #
+    # global yspA=2 # https://microbialcellfactories.biomedcentral.com/track/pdf/10.1186/s12934-020-01362-9.pdf
+    # global yspS=2 #
     # global ysx=0.06 #http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     # global ysx=1.017 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     # global ysx=3 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     global ysxE=1.017 # http://staff.du.edu.eg/upfilestaff/1066/researches/31066_1619277717__jawed2020._.pdf
     global ysxE_NH4=1.017
-    global ysxA=0.5 # https://www.researchgate.net/figure/Growth-kinetics-of-Azotobacter-vinelandii-in-medium-before-and-after-optimization_tbl2_301753155
+    global ysxA=0.17 # https://www.researchgate.net/figure/Growth-kinetics-of-Azotobacter-vinelandii-in-medium-before-and-after-optimization_tbl2_301753155
     global ysxS=0.17 # https://www.sciencedirect.com/science/article/pii/S0960852406004792
     # global D0= 0.68 # h^-1 initial dilusion rate
     global A0=0.01 # g/l initial substrate feeding concentration
@@ -67,7 +79,7 @@ function loadProcessData()
     global D0=[DE DA DS]
     global KA=300
     global KS=300
-    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\Triculture\\coculture\\Monod equation\\batch\\ysxA changed yspS_1"
+    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\Triculture\\modified triculture model\\triculture test without inhibition from isobutanol (Monod equation)"
     println("Parameters Loaded!")
 end
 
@@ -97,12 +109,12 @@ function CocultureGrowth() # Continuous flow
     savefig("Coculture profile monod equation of nutrient tspan1_48.pdf")
 
     # Store data into excel files
-    println("writing plots to files")
-    top_excel_file = out_dir * "\\Profiles of All Microbial without inhibition tspan_48.xlsx"
-    column_names = ["times (hr)","Av","Se", "Sucrose", "Ammonia","Growth rate of Av","Growth rate of Se"]
-    data=[tt1,At1,St1,Ct1,Nt1,dA1dt,dS1dt]
-    # write to excel file
-    XLSX.writetable(top_excel_file, data, column_names)
+    # println("writing plots to files")
+    # top_excel_file = out_dir * "\\Profiles of All Microbial without inhibition tspan_48.xlsx"
+    # column_names = ["times (hr)","Av","Se", "Sucrose", "Ammonia","Growth rate of Av","Growth rate of Se"]
+    # data=[tt1,At1,St1,Ct1,Nt1,dA1dt,dS1dt]
+    # # write to excel file
+    # XLSX.writetable(top_excel_file, data, column_names)
   
 end
 
@@ -250,9 +262,9 @@ function Startup(A,S,N,C,tspan1) # batch
     f(y,p,t)=[(mu_maxA*y[3]/(ksA+y[3]) - kdA)*y[1],# X(Av)
          (mu_maxS*y[4]/(ksS+y[4]) - kdS)*y[2],# X(Se)
          max(y[3],0)/y[3]*( - (mu_maxA*y[3]/(ksA+y[3])/ysxA)*y[1] + yspS*(mu_maxS*y[4]/(ksS+y[4]))/ysxS*y[2]), # Sucrose
-         max(y[4],0)/y[4]*(yspA*mu_maxA*y[4]/(ksA+y[4])*y[1]/ysxA  - (mu_maxS*y[4]/(ksS+y[4])/ysxS)*y[2])] # Ammonia
+         max(y[4],0)/y[4]*(yspA*mu_maxA*y[3]/(ksA+y[3])*y[1]/ysxA  - (mu_maxS*y[4]/(ksS+y[4])/ysxS)*y[2])] # Ammonia
         #  max(y[3],0)/y[3]*( - (mu_maxA*y[3]/(ksA+y[3])/ysxA+msA)*y[1] + yspS*(mu_maxS*y[4]/(ksS+y[4]))/ysxS*y[2]), # Sucrose
-        #  max(y[4],0)/y[4]*(yspA*mu_maxA*y[4]/(ksA+y[4])*y[1]/ysxA  - (mu_maxS*y[4]/(ksS+y[4])/ysxS+msS)*y[2])] # Ammonia
+        #  max(y[4],0)/y[4]*(yspA*mu_maxA*y[3]/(ksA+y[3])*y[1]/ysxA  - (mu_maxS*y[4]/(ksS+y[4])/ysxS+msS)*y[2])] # Ammonia
     prob=ODEProblem(f,[A,S,N,C],(0.0,tspan1))
     # PositiveDomain(S=nothing;save=true,abstol=nothing,scalefactor=nothing)
     soln=DifferentialEquations.solve(prob,Rosenbrock23())
