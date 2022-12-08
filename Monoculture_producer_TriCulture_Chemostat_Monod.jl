@@ -1,12 +1,12 @@
 # Simulation for Continuously Triculturing System
 # Simplest version: the limited substrates are sucrose and ammonia for Av/Se respectively, while E.coli consider sucrose and oxygen transfer limitation
-using Plots, JuMP, Ipopt, DifferentialEquations, NLsolve, XLSX
+using Plots, DifferentialEquations, NLsolve, XLSX, Printf
 
 function loadProcessData()
     # Fitted parameters:
     global mu_maxA=0.11
     global mu_maxS=0.0217
-    global msA=4
+    global msA=0.05
     global msS=0.79
     global ksA=0.520
     global ksS=0.344
@@ -79,13 +79,14 @@ function loadProcessData()
     global D0=[DE DA DS]
     global KA=300
     global KS=300
-    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\Triculture\\modified triculture model\\triculture test without inhibition from isobutanol (Monod equation)"
-    println("Parameters Loaded!")
+    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\coculture\\Monod equation\\Quickly Parameters Permutation"
+    # println("Parameters Loaded!")
 end
 
-function CocultureGrowth() # Continuous flow
+function CocultureGrowth(parameters) # Continuous flow
+    println(parameters)
     loadProcessData()
-    global tt1,At1,St1,Ct1,Nt1=Startup(A0,S0,N0,C0,tspan1)
+    global tt1,At1,St1,Ct1,Nt1=Startup(A0,S0,N0,C0,tspan1,parameters)
     # Startup stage
     global dA1dt=zeros(size(tt1)[1])
     global dS1dt=zeros(size(tt1)[1])
@@ -93,28 +94,33 @@ function CocultureGrowth() # Continuous flow
         dA1dt[i]=(mu_maxA*Ct1[i]/(ksA+Ct1[i]) - kdA)*At1[i]
         # dA1dt[i]=mu_maxA*(KA-At1[i])/KA*At1[i]
     end
-    println(size(tt1)[1])
+    # println(size(tt1)[1])
     for i=1:size(tt1)[1]
         dS1dt[i]=(mu_maxS*Nt1[i]/(ksS+Nt1[i]) - kdS)*St1[i]
         # dS1dt[i]=mu_maxS*(KS-St1[i])/KS*St1[i]
     end
+    i1=parameters[1]
+    i2=parameters[2]
+    i3=parameters[3]
+    i4=parameters[4]
+    i5=parameters[5]
     plot(tt1,dA1dt,label="Growth rate of Av when biculture",xaxis="Time(hr)",yaxis="g/L/h",title="Start up profiles for co-culture",framestyle=:box,legend=:topleft)
     plot!(tt1,dS1dt,label="Growth rate of Se when biculture",xaxis="Time(hr)",yaxis="g/L/h",)
-    savefig("Coculture profile monod equation of growth rate tspan1_48.pdf")
+    savefig("Coculture profile monod equation of growth rate with muS_$(@sprintf("%.2f",i1)) ksS_$(@sprintf("%.2f",i2)) ysxS_$(@sprintf("%.2f",i3)) yspS_$(@sprintf("%.2f",i4)) msS_$(@sprintf("%.2f",i5)).pdf")
     plot(tt1,At1,label="Av concentration profile when biculture",xaxis="Time(hr)",yaxis="Av(g/L)",framestyle=:box,legend=:topleft)
     plot!(tt1,St1,label="Se concentration profile when biculture",xaxis="Time(hr)",yaxis="Se(g/L)")
-    savefig("Coculture profile monod equation of microbial profile tspan1_48.pdf")
+    savefig("Coculture profile monod equation of microbial profile with muS_$(@sprintf("%.2f",i1)) ksS_$(@sprintf("%.2f",i2)) ysxS_$(@sprintf("%.2f",i3)) yspS_$(@sprintf("%.2f",i4)) msS_$(@sprintf("%.2f",i5)).pdf")
     plot(tt1,Ct1,label="Sucrose concentration profile when biculture",xaxis="Time(hr)",yaxis="Sucrose(g/L)",framestyle=:box,legend=:topleft)
     plot!(tt1,Nt1,label="Ammonia concentration profile when biculture",xaxis="Time(hr)",yaxis="Ammonia(g/L)")
-    savefig("Coculture profile monod equation of nutrient tspan1_48.pdf")
+    savefig("Coculture profile monod equation of nutrient with muS_$(@sprintf("%.2f",i1)) ksS_$(@sprintf("%.2f",i2)) ysxS_$(@sprintf("%.2f",i3)) yspS_$(@sprintf("%.2f",i4)) msS_$(@sprintf("%.2f",i5)).pdf")
 
     # Store data into excel files
     # println("writing plots to files")
-    # top_excel_file = out_dir * "\\Profiles of All Microbial without inhibition tspan_48.xlsx"
-    # column_names = ["times (hr)","Av","Se", "Sucrose", "Ammonia","Growth rate of Av","Growth rate of Se"]
-    # data=[tt1,At1,St1,Ct1,Nt1,dA1dt,dS1dt]
-    # # write to excel file
-    # XLSX.writetable(top_excel_file, data, column_names)
+    top_excel_file = out_dir * "\\Profiles of All Microbial without inhibition with muS_$(@sprintf("%.2f",i1)) ksS_$(@sprintf("%.2f",i2)) ysxS_$(@sprintf("%.2f",i3)) yspS_$(@sprintf("%.2f",i4)) msS_$(@sprintf("%.2f",i5)).xlsx"
+    column_names = ["times (hr)","Av","Se", "Sucrose", "Ammonia","Growth rate of Av","Growth rate of Se"]
+    data=[tt1,At1,St1,Ct1,Nt1,dA1dt,dS1dt]
+    # write to excel file
+    XLSX.writetable(top_excel_file, data, column_names)
   
 end
 
@@ -250,29 +256,18 @@ function AllGrowth() # Continuous flow
   
 end
 
-function Startup(A,S,N,C,tspan1) # batch
-    # Logistic equation
-    # f(y,p,t)=[mu_maxA*(KA-y[1])/KA*y[1]-kdA*y[1],# X(Av) with death rate
-    # mu_maxS*(KS-y[2])/KS*y[2]-kdS*y[2],# X(Se)
-    # # f(y,p,t)=[mu_maxA*(KA-y[1])/KA*y[1],# X(Av)
-    # #      mu_maxS*(KS-y[2])/KS*y[2],# X(Se)
-    #      max(y[3],0)/y[3]*( - (mu_maxA*(KA-y[1])/KA*y[1]/ysxA+msA)*y[1] + yspS*mu_maxS*(KS-y[2])/KS*y[2]/ysxS*y[2]), # Sucrose
-    #      max(y[4],0)/y[4]*(yspA*mu_maxA*(KA-y[1])/KA*y[1]/ysxA  - (mu_maxS*(KS-y[2])/KS*y[2]/ysxS+msS)*y[2])] # Ammonia
+function Startup(A,S,N,C,tspan1,pS) # batch
+    # pS=[mu_maxS ksS ysxS yspS msS]
     # Monod Equation
     f(y,p,t)=[(mu_maxA*y[3]/(ksA+y[3]) - kdA)*y[1],# X(Av)
-         (mu_maxS*y[4]/(ksS+y[4]) - kdS)*y[2],# X(Se)
-         max(y[3],0)/y[3]*( - (mu_maxA*y[3]/(ksA+y[3])/ysxA)*y[1] + yspS*(mu_maxS*y[4]/(ksS+y[4]))/ysxS*y[2]), # Sucrose
-         max(y[4],0)/y[4]*(yspA*mu_maxA*y[3]/(ksA+y[3])*y[1]/ysxA  - (mu_maxS*y[4]/(ksS+y[4])/ysxS)*y[2])] # Ammonia
-        #  max(y[3],0)/y[3]*( - (mu_maxA*y[3]/(ksA+y[3])/ysxA+msA)*y[1] + yspS*(mu_maxS*y[4]/(ksS+y[4]))/ysxS*y[2]), # Sucrose
-        #  max(y[4],0)/y[4]*(yspA*mu_maxA*y[3]/(ksA+y[3])*y[1]/ysxA  - (mu_maxS*y[4]/(ksS+y[4])/ysxS+msS)*y[2])] # Ammonia
+         (pS[1]*y[4]/(pS[2]+y[4]) - kdS)*y[2],# X(Se)
+         max(y[3],0)/y[3]*( - (mu_maxA*y[3]/(ksA+y[3])/ysxA+msA)*y[1] + pS[4]*(pS[1]*y[4]/(ksS+y[4]))/pS[3]*y[2]), # Sucrose
+         max(y[4],0)/y[4]*(yspA*mu_maxA*y[3]/(ksA+y[3])*y[1]/ysxA  - (pS[1]*y[4]/(ksS+y[4])/pS[3]+pS[5])*y[2])] # Ammonia
     prob=ODEProblem(f,[A,S,N,C],(0.0,tspan1))
     # PositiveDomain(S=nothing;save=true,abstol=nothing,scalefactor=nothing)
     soln=DifferentialEquations.solve(prob,Rosenbrock23())
     a=soln.t
     A=Array(soln)
-    # plot(a,A[1,:],title="Microbial concentration profile",xaxis="Time(hr)",yaxis="X(g/L)",label=false)
-    # plot(a,A[2,:],title="Substrate concentration profile",xaxis="Time(hr)",yaxis="S(g/L)",label=false)
-    # plot(a,A[3,:],title="Product concentration profile",xaxis="Time(hr)",yaxis="P(g/L)",label=false)
     return a,A[1,:],A[2,:],A[3,:],A[4,:]
     # At,St,Ct,Nt
 end
