@@ -7,7 +7,7 @@ function loadProcessData()
     global mu_maxA=0.11
     global mu_maxS=0.0217
     global msA=0.05
-    global msS=0.79
+    global msS=0.05
     global ksA=0.520
     global ksS=0.344
     global ysxA=2.451
@@ -83,42 +83,47 @@ function loadProcessData()
     # println("Parameters Loaded!")
 end
 
-function CocultureGrowth(parameters) # Continuous flow
-    println(parameters)
+function CocultureGrowth(parameterS,parameterA) # Continuous flow
+    println(parameterS,parameterA)
     loadProcessData()
-    global tt1,At1,St1,Ct1,Nt1=Startup(A0,S0,N0,C0,tspan1,parameters)
+    global tt1,At1,St1,Ct1,Nt1=Startup(A0,S0,N0,C0,tspan1,parameterS,parameterA)
     # Startup stage
-    global dA1dt=zeros(size(tt1)[1])
-    global dS1dt=zeros(size(tt1)[1])
-    for i=1:size(tt1)[1]
-        dA1dt[i]=(mu_maxA*Ct1[i]/(ksA+Ct1[i]) - kdA)*At1[i]
-        # dA1dt[i]=mu_maxA*(KA-At1[i])/KA*At1[i]
-    end
-    # println(size(tt1)[1])
-    for i=1:size(tt1)[1]
-        dS1dt[i]=(mu_maxS*Nt1[i]/(ksS+Nt1[i]) - kdS)*St1[i]
-        # dS1dt[i]=mu_maxS*(KS-St1[i])/KS*St1[i]
-    end
-    i1=parameters[1]
-    i2=parameters[2]
-    i3=parameters[3]
-    i4=parameters[4]
-    i5=parameters[5]
-    plot(tt1,dA1dt,label="Growth rate of Av when biculture",xaxis="Time(hr)",yaxis="g/L/h",title="Start up profiles for co-culture",framestyle=:box,legend=:topleft)
-    plot!(tt1,dS1dt,label="Growth rate of Se when biculture",xaxis="Time(hr)",yaxis="g/L/h",)
-    savefig("Coculture profile monod equation of growth rate with muS_$(@sprintf("%.2f",i1)) ksS_$(@sprintf("%.2f",i2)) ysxS_$(@sprintf("%.2f",i3)) yspS_$(@sprintf("%.2f",i4)) msS_$(@sprintf("%.2f",i5)).pdf")
+    # global dA1dt=zeros(size(tt1)[1])
+    # global dS1dt=zeros(size(tt1)[1])
+    # for i=1:size(tt1)[1]
+    #     dA1dt[i]=(mu_maxA*Ct1[i]/(ksA+Ct1[i]) - kdA)*At1[i]
+    #     # dA1dt[i]=mu_maxA*(KA-At1[i])/KA*At1[i]
+    # end
+    # # println(size(tt1)[1])
+    # for i=1:size(tt1)[1]
+    #     dS1dt[i]=(mu_maxS*Nt1[i]/(ksS+Nt1[i]) - kdS)*St1[i]
+    #     # dS1dt[i]=mu_maxS*(KS-St1[i])/KS*St1[i]
+    # end
+    s1=parameterS[1]
+    s2=parameterS[2]
+    s3=parameterS[3]
+    s4=parameterS[4]
+    s5=parameterS[5]
+    a1=parameterA[1]
+    a2=parameterA[2]
+    a3=parameterA[3]
+    a4=parameterA[4]
+    a5=parameterA[5]
+    # plot(tt1,dA1dt,label="Growth rate of Av when biculture",xaxis="Time(hr)",yaxis="g/L/h",title="Start up profiles for co-culture",framestyle=:box,legend=:topleft)
+    # plot!(tt1,dS1dt,label="Growth rate of Se when biculture",xaxis="Time(hr)",yaxis="g/L/h",)
+    # savefig("muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).pdf")
     plot(tt1,At1,label="Av concentration profile when biculture",xaxis="Time(hr)",yaxis="Av(g/L)",framestyle=:box,legend=:topleft)
     plot!(tt1,St1,label="Se concentration profile when biculture",xaxis="Time(hr)",yaxis="Se(g/L)")
-    savefig("Coculture profile monod equation of microbial profile with muS_$(@sprintf("%.2f",i1)) ksS_$(@sprintf("%.2f",i2)) ysxS_$(@sprintf("%.2f",i3)) yspS_$(@sprintf("%.2f",i4)) msS_$(@sprintf("%.2f",i5)).pdf")
+    savefig("muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).pdf")
     plot(tt1,Ct1,label="Sucrose concentration profile when biculture",xaxis="Time(hr)",yaxis="Sucrose(g/L)",framestyle=:box,legend=:topleft)
     plot!(tt1,Nt1,label="Ammonia concentration profile when biculture",xaxis="Time(hr)",yaxis="Ammonia(g/L)")
-    savefig("Coculture profile monod equation of nutrient with muS_$(@sprintf("%.2f",i1)) ksS_$(@sprintf("%.2f",i2)) ysxS_$(@sprintf("%.2f",i3)) yspS_$(@sprintf("%.2f",i4)) msS_$(@sprintf("%.2f",i5)).pdf")
+    savefig("muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).pdf")
 
     # Store data into excel files
     # println("writing plots to files")
-    top_excel_file = out_dir * "\\Profiles of All Microbial without inhibition with muS_$(@sprintf("%.2f",i1)) ksS_$(@sprintf("%.2f",i2)) ysxS_$(@sprintf("%.2f",i3)) yspS_$(@sprintf("%.2f",i4)) msS_$(@sprintf("%.2f",i5)).xlsx"
-    column_names = ["times (hr)","Av","Se", "Sucrose", "Ammonia","Growth rate of Av","Growth rate of Se"]
-    data=[tt1,At1,St1,Ct1,Nt1,dA1dt,dS1dt]
+    top_excel_file = out_dir * "\\muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).xlsx"
+    column_names = ["times (hr)","Av","Se", "Sucrose", "Ammonia"]
+    data=[tt1,At1,St1,Ct1,Nt1]
     # write to excel file
     XLSX.writetable(top_excel_file, data, column_names)
   
@@ -256,13 +261,14 @@ function AllGrowth() # Continuous flow
   
 end
 
-function Startup(A,S,N,C,tspan1,pS) # batch
+function Startup(A,S,N,C,tspan1,pS,pA) # batch
     # pS=[mu_maxS ksS ysxS yspS msS]
+    # pA=[mu_maxA ksA ysxA yspA msA]
     # Monod Equation
-    f(y,p,t)=[(mu_maxA*y[3]/(ksA+y[3]) - kdA)*y[1],# X(Av)
+    f(y,p,t)=[(pA[1]*y[3]/(pA[2]+y[3]) - kdA)*y[1],# X(Av)
          (pS[1]*y[4]/(pS[2]+y[4]) - kdS)*y[2],# X(Se)
-         max(y[3],0)/y[3]*( - (mu_maxA*y[3]/(ksA+y[3])/ysxA+msA)*y[1] + pS[4]*(pS[1]*y[4]/(ksS+y[4]))/pS[3]*y[2]), # Sucrose
-         max(y[4],0)/y[4]*(yspA*mu_maxA*y[3]/(ksA+y[3])*y[1]/ysxA  - (pS[1]*y[4]/(ksS+y[4])/pS[3]+pS[5])*y[2])] # Ammonia
+         max(y[3],0)/y[3]*( - (pA[1]/(pA[2]+y[3])/pA[3]+pA[5])*y[1] + pS[4]*(pS[1]*y[4]/(ksS+y[4]))/pS[3]*y[2]), # Sucrose
+         max(y[4],0)/y[4]*(pA[4]*pA[1]*y[3]/(pA[2]+y[3])*y[1]/pA[3]  - (pS[1]*y[4]/(pS[2]+y[4])/pS[3]+pS[5])*y[2])] # Ammonia
     prob=ODEProblem(f,[A,S,N,C],(0.0,tspan1))
     # PositiveDomain(S=nothing;save=true,abstol=nothing,scalefactor=nothing)
     soln=DifferentialEquations.solve(prob,Rosenbrock23())
