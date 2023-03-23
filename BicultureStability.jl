@@ -25,36 +25,51 @@ end
 
 function StabilityDiagramDataGenerator(test)
     A = JMatrix(test[1], test[2], test[3], test[4], test[5], test[6], test[7], test[8], test[9], test[10], test[11], test[12], test[13], test[14])
-    lambda = eigvals(A)
+    lambda = eigvals(A) # X_Av, X_Se, C_C, C_N
     println(lambda)
     vec = eigvecs(A)
+    print(size(vec))
     return lambda, vec
 end
+
+include("Monoculture_producer_TriCulture_Chemostat_Monod.jl")
+
+X_Se = 0
+X_Av = 0
 
 mumax_Av = 0.1
 kd_Av = 0.1
 Ks_Av = 0.3
 Ys_Av = 1
 Y_NC_Av = 1/3.5
-# C_N = 2
-# X_Av = 0
 mumax_Se = 0.2
 kd_Se = 0.1
 Ks_Se = 0.01
-Ys_Se = 5
+Ys_Se = 5  
 Y_CN_Se = 3.5
-# C_C = 0
-# X_Se = 0
-C_C = 2
-C_N = 2
-X_Av = 1
-X_Se = X_Av*kd_Av/kd_Se*Ys_Se/Ys_Av*Y_NC_Av
+C_N_list = [0.01, 0.05, 0.1, 0.5, 1, 5, 10, 50, 100]
+C_C_list = C_N_list
 
-test = [mumax_Av, kd_Av, Ks_Av, Ys_Av, Y_NC_Av, C_N, X_Av, mumax_Se, kd_Se, Ks_Se, Ys_Se, Y_CN_Se, C_C, X_Se]
-lambda = StabilityDiagramDataGenerator(test)
-include("Monoculture_producer_TriCulture_Chemostat_Monod.jl")
-ParameterS = [mumax_Se, Ks_Se, Ys_Se, Y_CN_Se, 0]
-ParameterA = [mumax_Av, Ks_Av, Ys_Av, Y_NC_Av, 0]
-CocultureGrowth(ParameterS, ParameterA)
+function StabilityAnalysis2D_Nutrient(C_N_list, C_C_list)
+    eigenvalue = zeros(length(C_C_list)*length(C_N_list), 4);
+    eigenvector = zeros(length(C_C_list)*length(C_N_list), 4, 4);
+    count = 0
+    println("start permutating C_N and C_C")
+    for i in eachindex(C_N_list)
+        C_N = C_N_list[i] 
+        for j in eachindex(C_C_list)
+            C_C = C_C_list[j]
+            count += 1
+            println("count=",count)
+            test = [mumax_Av, kd_Av, Ks_Av, Ys_Av, Y_NC_Av, C_N, X_Av, mumax_Se, kd_Se, Ks_Se, Ys_Se, Y_CN_Se, C_C, X_Se]
+            eigenvalue[count, :], eigenvector[count,:,:] = StabilityDiagramDataGenerator(test)
+            # println("size of eigenvector = ",size(vec))
+            println(eigenvector[count,:,:])
+            # ParameterS = [mumax_Se, Ks_Se, Ys_Se, Y_CN_Se, 0]
+            # ParameterA = [mumax_Av, Ks_Av, Ys_Av, Y_NC_Av, 0]
+            # CocultureGrowth(ParameterS, ParameterA)
+        end
+    end
 
-# TODO create the diagram for only change N0 and C0 (or X_Av and X_Se)
+    return eigenvalue, eigenvector
+end
