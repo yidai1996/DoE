@@ -33,32 +33,32 @@ function StabilityDiagramDataGenerator4D(test)
     return lambda, vec
 end
 
-function JMatrix2D(mumax_Av, kd_Av, Ks_Av, Ys_Av, Y_NC_Av, C_N, X_Av, mumax_Se, kd_Se, Ks_Se, Ys_Se, Y_CN_Se, C_C, X_Se)
-    J = zeros(2,2)
-    mu_Av = mumax_Av*C_C/(Ks_Av+C_C)
-    mu_Se = mumax_Se*C_N/(Ks_Se+C_N)
-    J[1,1] = mu_Av - kd_Av
-    J[1,2] = 0
-    J[2,1] = 0
-    J[2,2] = mu_Se - kd_Se
+# function JMatrix2D(mumax_Av, kd_Av, Ks_Av, Ys_Av, Y_NC_Av, C_N, X_Av, mumax_Se, kd_Se, Ks_Se, Ys_Se, Y_CN_Se, C_C, X_Se)
+#     J = zeros(2,2)
+#     mu_Av = mumax_Av*C_C/(Ks_Av+C_C)
+#     mu_Se = mumax_Se*C_N/(Ks_Se+C_N)
+#     J[1,1] = mu_Av - kd_Av
+#     J[1,2] = 0
+#     J[2,1] = 0
+#     J[2,2] = mu_Se - kd_Se
 
-    # J[1,1] = - X_Av / Ys_Av * mumax_Av * Ks_Av /(Ks_Av+C_C)^2
-    # J[1,2] = Y_CN_Se * X_Se / Ys_Se *mumax_Se * Ks_Se /(Ks_Se+C_N)^2
-    # J[2,1] = Y_NC_Av * X_Av / Ys_Av *mumax_Av * Ks_Av /(Ks_Av+C_C)^2
-    # J[2,2] = - X_Se / Ys_Se * mumax_Se * Ks_Se /(Ks_Se+C_N)^2
-    # println(J)
+#     # J[1,1] = - X_Av / Ys_Av * mumax_Av * Ks_Av /(Ks_Av+C_C)^2
+#     # J[1,2] = Y_CN_Se * X_Se / Ys_Se *mumax_Se * Ks_Se /(Ks_Se+C_N)^2
+#     # J[2,1] = Y_NC_Av * X_Av / Ys_Av *mumax_Av * Ks_Av /(Ks_Av+C_C)^2
+#     # J[2,2] = - X_Se / Ys_Se * mumax_Se * Ks_Se /(Ks_Se+C_N)^2
+#     # println(J)
 
-    return J
-end
+#     return J
+# end
 
-function StabilityDiagramDataGenerator2D(test)
-    A = JMatrix2D(test[1], test[2], test[3], test[4], test[5], test[6], test[7], test[8], test[9], test[10], test[11], test[12], test[13], test[14])
-    lambda = eigvals(A) # X_Av, X_Se, C_C, C_N
-    # println(lambda)
-    vec = eigvecs(A)
-    # print(size(vec))
-    return lambda, vec
-end
+# function StabilityDiagramDataGenerator2D(test)
+#     A = JMatrix2D(test[1], test[2], test[3], test[4], test[5], test[6], test[7], test[8], test[9], test[10], test[11], test[12], test[13], test[14])
+#     lambda = eigvals(A) # X_Av, X_Se, C_C, C_N
+#     # println(lambda)
+#     vec = eigvecs(A)
+#     # print(size(vec))
+#     return lambda, vec
+# end
 
 include("Monoculture_producer_TriCulture_Chemostat_Monod.jl")
 
@@ -76,33 +76,29 @@ Ys_Se = 5
 Y_CN_Se = 0.5
 
 # X_Ax = X_Se = 0
-C_N_list = collect(0:0.1:100);
+C_N_list = collect(0:1:100);
 C_C_list = C_N_list;
+X_Se = 0
+X_Av = 0
 
-# C_N = C_C =0
-X_Se_list = collect(0:1:100); # X_Se
-X_Av_list = X_Se_list; # X_Av
-C_N = 0; # C_N
-C_C = 0;
 Stability = zeros(length(C_C_list)*length(C_N_list),3);
 
 function StabilityAnalysis2D_Nutrient(C_N_list, C_C_list)
-    # eigenvalue = zeros(length(C_C_list)*length(C_N_list), 4);
-    # eigenvector = zeros(length(C_C_list)*length(C_N_list), 4, 4);
-    eigenvalue = zeros(length(C_C_list)*length(C_N_list), 2);
-    eigenvector = zeros(length(C_C_list)*length(C_N_list), 2, 2);
+    eigenvalue = zeros(length(C_C_list)*length(C_N_list), 4);
+    eigenvector = zeros(length(C_C_list)*length(C_N_list), 4, 4);
+    # eigenvalue = zeros(length(C_C_list)*length(C_N_list), 2);
+    # eigenvector = zeros(length(C_C_list)*length(C_N_list), 2, 2);
     count = 0
     println("start permutating C_N and C_C")
-    for i in eachindex(X_Av_list)
-        # C_N = C_N_list[i] 
-        X_Av = X_Av_list[i] 
-        for j in eachindex(X_Se_list)
-            X_Se = X_Se_list[j]
+    for i in eachindex(C_N_list)
+        C_N = C_N_list[i] 
+        for j in eachindex(C_C_list)
+            C_C = C_C_list[j]
             count += 1
             println("count=",count)
             test = [mumax_Av, kd_Av, Ks_Av, Ys_Av, Y_NC_Av, C_N, X_Av, mumax_Se, kd_Se, Ks_Se, Ys_Se, Y_CN_Se, C_C, X_Se]
-            # eigenvalue[count, :], eigenvector[count,:,:] = StabilityDiagramDataGenerator4D(test)
-            eigenvalue[count, :], eigenvector[count,:,:] = StabilityDiagramDataGenerator2D(test)
+            eigenvalue[count, :], eigenvector[count,:,:] = StabilityDiagramDataGenerator4D(test)
+            # eigenvalue[count, :], eigenvector[count,:,:] = StabilityDiagramDataGenerator2D(test)
             # println("size of eigenvector = ",size(vec))
             # println(eigenvector[count,:,:])
             
@@ -115,9 +111,9 @@ function StabilityAnalysis2D_Nutrient(C_N_list, C_C_list)
             else Stability[count,:] = [X_Av X_Se 1]
             end
 
-            # ParameterS = [mumax_Se, Ks_Se, Ys_Se, Y_CN_Se, 0]
-            # ParameterA = [mumax_Av, Ks_Av, Ys_Av, Y_NC_Av, 0]
-            # CocultureGrowth(ParameterS, ParameterA; filename = "C_$(@sprintf("%.2f",C_C))_N__$(@sprintf("%.2f",C_N))")
+            ParameterS = [mumax_Se, Ks_Se, Ys_Se, Y_CN_Se, 0];
+            ParameterA = [mumax_Av, Ks_Av, Ys_Av, Y_NC_Av, 0];
+            CocultureGrowth(ParameterS, ParameterA, C_N, C_C; filename = "C_$(@sprintf("%.2f",C_C))_N__$(@sprintf("%.2f",C_N))")
         end
     end
 

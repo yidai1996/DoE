@@ -50,12 +50,12 @@ function loadProcessData()
     global ysxS=0.17 # https://www.sciencedirect.com/science/article/pii/S0960852406004792
     # global D0= 0.68 # h^-1 initial dilusion rate
     # global A0=0.01 # g/l initial substrate feeding concentration
-    global A0=1 # g/l initial substrate feeding concentration
+    global A0=0.01 # g/l initial Av concentration
 
     global E0=0.01 # g/L initial cell concentration 0.7g/L is from Figure 2.4 on Page 34 of David's thesis
     
     # global S0=0.01 # g/L initial substrate concentration
-    global S0=0.5 # g/L initial substrate concentration
+    global S0=0.5 # g/L initial Se concentration
     # global N0=1 # g/L initial substrate concentration
     global N0=100 # g/L initial substrate concentration
     # global C0=1 # g/L initial substrate concentration
@@ -85,14 +85,15 @@ function loadProcessData()
     global D0=[DE DA DS]
     global KA=300
     global KS=300
-    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\LinearStabilityAnalysis\\ZeroX_Av_X_Se"
+    # global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\LinearStabilityAnalysis\\ZeroX_Av_X_Se"
+    global out_dir="C:\\Users\\yid\\TemporaryResearchDataStorage\\"
     # println("Parameters Loaded!")
 end
 
-function CocultureGrowth(parameterS,parameterA; filename = "NotSpecific") # Continuous flow
+function CocultureGrowth(parameterS,parameterA, N1, C1; filename = "NotSpecific") # Continuous flow
     println(parameterS,parameterA)
     loadProcessData()
-    global tt1,At1,St1,Ct1,Nt1=Startup(1,0.5,100,30,tspan1,parameterS,parameterA)
+    global tt1,At1,St1,Ct1,Nt1=Startup(A0,S0,N1,C1,tspan1,parameterS,parameterA)
     # Startup stage
     # global dA1dt=zeros(size(tt1)[1])
     # global dS1dt=zeros(size(tt1)[1])
@@ -122,6 +123,7 @@ function CocultureGrowth(parameterS,parameterA; filename = "NotSpecific") # Cont
     # Microbial
     plot(tt1,At1,label="Av concentration profile when biculture",xaxis="Time(hr)",yaxis="Av(g/L)",framestyle=:box,legend=:topleft)
     plot!(tt1,St1,label="Se concentration profile when biculture",xaxis="Time(hr)",yaxis="Se(g/L)")
+    println(out_dir)
     savefig(out_dir * "Microbial_" * filename * "_muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).pdf")
     plot(tt1,Ct1,label="Sucrose concentration profile when biculture",xaxis="Time(hr)",yaxis="Sucrose(g/L)",framestyle=:box,legend=:topleft)
     plot!(tt1,Nt1,label="Ammonia concentration profile when biculture",xaxis="Time(hr)",yaxis="Ammonia(g/L)")
@@ -277,7 +279,7 @@ function Startup(A,S,N,C,tspan1,pS,pA) # batch
     f(y,p,t)=[(pA[1]*y[3]/(pA[2]+y[3]) - kdA)*y[1],# X(Av)
          (pS[1]*y[4]/(pS[2]+y[4]) - kdS)*y[2],# X(Se)
          max(y[3],0)/y[3]*( - (pA[1]/(pA[2]+y[3])/pA[3]+pA[5])*y[1] + pS[4]*(pS[1]*y[4]/(ksS+y[4]))/pS[3]*y[2]), # Sucrose
-         max(y[4],0)/y[4]*(pA[4]*pA[1]*y[3]/(pA[2]+y[3])*y[1]/pA[3]  - (pS[1]*y[4]/(pS[2]+y[4])/pS[3]+pS[5])*y[2])] # Ammonia
+         max(y[4],0)/y[4]*(pA[4]*pA[1]*y[3]/(pA[2]+y[3])*y[1]/pA[3] - (pS[1]*y[4]/(pS[2]+y[4])/pS[3]+pS[5])*y[2])] # Ammonia
     prob=ODEProblem(f,[A,S,N,C],(0.0,tspan1))
     # PositiveDomain(S=nothing;save=true,abstol=nothing,scalefactor=nothing)
     soln=DifferentialEquations.solve(prob,Rosenbrock23())
