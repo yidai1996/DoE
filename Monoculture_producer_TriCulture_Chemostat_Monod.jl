@@ -85,11 +85,11 @@ function loadProcessData()
     global D0=[DE DA DS]
     global KA=300
     global KS=300
-    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\GitDoE"
+    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\LinearStabilityAnalysis\\ZeroX_Av_X_Se"
     # println("Parameters Loaded!")
 end
 
-function CocultureGrowth(parameterS,parameterA) # Continuous flow
+function CocultureGrowth(parameterS,parameterA; filename = "NotSpecific") # Continuous flow
     println(parameterS,parameterA)
     loadProcessData()
     global tt1,At1,St1,Ct1,Nt1=Startup(1,0.5,100,30,tspan1,parameterS,parameterA)
@@ -122,15 +122,15 @@ function CocultureGrowth(parameterS,parameterA) # Continuous flow
     # Microbial
     plot(tt1,At1,label="Av concentration profile when biculture",xaxis="Time(hr)",yaxis="Av(g/L)",framestyle=:box,legend=:topleft)
     plot!(tt1,St1,label="Se concentration profile when biculture",xaxis="Time(hr)",yaxis="Se(g/L)")
-    savefig("Microbial_muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).pdf")
+    savefig(out_dir * "Microbial_" * filename * "_muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).pdf")
     plot(tt1,Ct1,label="Sucrose concentration profile when biculture",xaxis="Time(hr)",yaxis="Sucrose(g/L)",framestyle=:box,legend=:topleft)
     plot!(tt1,Nt1,label="Ammonia concentration profile when biculture",xaxis="Time(hr)",yaxis="Ammonia(g/L)")
-    savefig("Nutrient_muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).pdf")
+    savefig(out_dir * "Nutrient_" * filename * "_muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).pdf")
 
     # Store data into excel files
     println("writing plots to files")
-    println(out_dir)
-    top_excel_file = out_dir * "\\muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).xlsx"
+    # println(out_dir)
+    top_excel_file = out_dir * "\\" * filename * "_muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).xlsx"
     column_names = ["times (hr)","Av","Se", "Sucrose", "Ammonia"]
     data=[tt1,At1,St1,Ct1,Nt1]
     # write to excel file
