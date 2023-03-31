@@ -71,7 +71,7 @@ function loadProcessData()
     global kLaO=2.766*60 # 1/h # https://www.sciencedirect.com/science/article/pii/S0032959200002727
     global xO2_sat=7.5/16/1000 # mol/L https://www.waterboards.ca.gov/water_issues/programs/swamp/docs/cwt/guidance/3110en.pdf
     global O20=xO2_sat
-    global tspan1=72 # h David's thesis
+    global tspan1=100 # h David's thesis
     global tspan2=100
     global saiin=0.05  # L/min
     global saioutE=0.01 # David's thesis
@@ -86,7 +86,7 @@ function loadProcessData()
     global KA=300
     global KS=300
     # global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\LinearStabilityAnalysis\\ZeroX_Av_X_Se"
-    global out_dir="C:\\Users\\yid\\TemporaryResearchDataStorage\\"
+    global out_dir="C:\\Users\\yid\\TemporaryResearchDataStorage\\doe3\\"
     # println("Parameters Loaded!")
 end
 
@@ -124,15 +124,15 @@ function CocultureGrowth(parameterS,parameterA, N1, C1; filename = "NotSpecific"
     plot(tt1,At1,label="Av concentration profile when biculture",xaxis="Time(hr)",yaxis="Av(g/L)",framestyle=:box,legend=:topleft)
     plot!(tt1,St1,label="Se concentration profile when biculture",xaxis="Time(hr)",yaxis="Se(g/L)")
     println(out_dir)
-    savefig(out_dir * "Microbial_" * filename * "_muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).pdf")
+    savefig(out_dir * "Microbial_" * filename * "_X_Av_$(@sprintf("%.2f",A0))_X_Se_$(@sprintf("%.2f",S0))_muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).pdf")
     plot(tt1,Ct1,label="Sucrose concentration profile when biculture",xaxis="Time(hr)",yaxis="Sucrose(g/L)",framestyle=:box,legend=:topleft)
     plot!(tt1,Nt1,label="Ammonia concentration profile when biculture",xaxis="Time(hr)",yaxis="Ammonia(g/L)")
-    savefig(out_dir * "Nutrient_" * filename * "_muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).pdf")
+    savefig(out_dir * "Nutrient_" * filename * "_X_Av_$(@sprintf("%.2f",A0))_X_Se_$(@sprintf("%.2f",S0))_muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).pdf")
 
     # Store data into excel files
     println("writing plots to files")
     # println(out_dir)
-    top_excel_file = out_dir * "\\" * filename * "_muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).xlsx"
+    top_excel_file = out_dir * "\\" * filename * "_X_Av_$(@sprintf("%.2f",A0))_X_Se_$(@sprintf("%.2f",S0))_muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).xlsx"
     column_names = ["times (hr)","Av","Se", "Sucrose", "Ammonia"]
     data=[tt1,At1,St1,Ct1,Nt1]
     # write to excel file
