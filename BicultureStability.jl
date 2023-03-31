@@ -76,16 +76,18 @@ Ys_Se = 5
 Y_CN_Se = 0.5
 
 # X_Ax = X_Se = 0
-C_N_list = collect(0:1:100);
+C_N_list = collect(0:0.1:4);
 C_C_list = C_N_list;
 X_Se = 0
 X_Av = 0
 
 Stability = zeros(length(C_C_list)*length(C_N_list),3);
+println(length(C_C_list)*length(C_N_list))
 
 function StabilityAnalysis2D_Nutrient(C_N_list, C_C_list)
     eigenvalue = zeros(length(C_C_list)*length(C_N_list), 4);
     eigenvector = zeros(length(C_C_list)*length(C_N_list), 4, 4);
+    # 2D case (biomass are not variables)
     # eigenvalue = zeros(length(C_C_list)*length(C_N_list), 2);
     # eigenvector = zeros(length(C_C_list)*length(C_N_list), 2, 2);
     count = 0
@@ -105,10 +107,10 @@ function StabilityAnalysis2D_Nutrient(C_N_list, C_C_list)
             # Classify stability
             # 1 = stable 2 = Lyapunov stable 3 = unstable
             if sum(x->x>0, eigenvalue[count,:]) > 0
-                Stability[count,:] = [X_Av X_Se 3]
+                Stability[count,:] = [C_C C_N 3]
             elseif sum(x->x==0, eigenvalue[count,:]) > 0
-                Stability[count,:] = [X_Av X_Se 2]
-            else Stability[count,:] = [X_Av X_Se 1]
+                Stability[count,:] = [C_C C_N 2]
+            else Stability[count,:] = [C_C C_N 1]
             end
 
             ParameterS = [mumax_Se, Ks_Se, Ys_Se, Y_CN_Se, 0];
@@ -135,8 +137,8 @@ num_lyapunov_stable = length(index_lyapunov_stable)
 num_stable = length(index_stable)
 
 Real_Unstable = zeros(num_unstable,2)
-Real_lyapunov_stable = zeros(num_lyapunov_stable)
-Real_stable = zeros(num_stable)
+Real_lyapunov_stable = zeros(num_lyapunov_stable,2)
+Real_stable = zeros(num_stable,2)
 
 Real_Unstable = C[index_unstable,1:2]
 Real_lyapunov_stable = C[index_lyapunov_stable,1:2]
@@ -146,31 +148,31 @@ show(stdout, "text/plain", C[index_stable,:])
 show(stdout, "text/plain", C[index_lyapunov_stable,:])
 show(stdout, "text/plain", C[index_unstable,:])
 
-# using Plots
-# rectangle(w, h, x, y) = Shape(x .+ [0,w,w,0], y .+ [0,0,h,h])
-# Plots.plot(rectangle(100, 100, 0, 0), xlabel="C(Sucrose)", ylabel="C(Ammonia)", label="Unstable")
+using Plots
+rectangle(w, h, x, y) = Shape(x .+ [0,w,w,0], y .+ [0,0,h,h])
+Plots.plot(rectangle(100, 100, 0, 0), xlabel="C(Sucrose)", ylabel="C(Ammonia)", label="Unstable")
 # Plots.plot(rectangle(100, 100, 0, 0), xlabel="C(Sucrose)", ylabel="C(Ammonia)", label="Lyapunov")
-# Plots.plot!(Real_lyapunov_stable[:,1], Real_lyapunov_stable[:,2],linewidth=10, label="Lyapunov Stable")
+Plots.plot!(Real_lyapunov_stable[:,1], Real_lyapunov_stable[:,2],linewidth=10, label="Lyapunov Stable")
 
 using DataFrames
-df = DataFrame([Float64[],Float64[],[]], ["X_Av","X_Se","Stability_Categories"])
-for i in 1:length(X_Av_list)*length(X_Se_list)
+df = DataFrame([Float64[],Float64[],[]], ["C_C","C_N","Stability_Categories"])
+for i in 1:length(C_C_list)*length(C_N_list)
     push!(df, C[i,:])
 end
 print(df)
 
-using Plots
-Plots.plot(C[index_stable,1], C[index_stable,2], xlabel="X_Av", ylabel="X_Se", label="Stable", seriestype=:scatter, markershape = :none, markerstrokewidth = 0, markercolor = :green)
-Plots.plot(C[index_lyapunov_stable,1], C[index_lyapunov_stable,2], label="Lyapunov Stable", seriestype=:scatter, markershape = :none, markerstrokewidth = 0, markercolor = :blue)
-Plots.plot(C[index_unstable,1], C[index_unstable,2], label="Stable", seriestype=:scatter, markershape = :none, markerstrokewidth = 0, markercolor = :red)
+# using Plots
+# Plots.plot(C[index_stable,1], C[index_stable,2], xlabel="Sucrose", ylabel="Ammonia", label="Stable", seriestype=:scatter, markershape = :none, markerstrokewidth = 0, markercolor = :green)
+# Plots.plot(C[index_lyapunov_stable,1], C[index_lyapunov_stable,2], label="Lyapunov Stable", seriestype=:scatter, markershape = :none, markerstrokewidth = 0, markercolor = :blue)
+# Plots.plot(C[index_unstable,1], C[index_unstable,2], label="Stable", seriestype=:scatter, markershape = :none, markerstrokewidth = 0, markercolor = :red)
 
-using PlotlyJS
-PlotlyJS.plot(
-    df, x=:X_Av, y=:X_Se, color=:Stability_Categories,
-    mode="markers"
-)
+# using PlotlyJS
+# PlotlyJS.plot(
+#     df, x=:X_Av, y=:X_Se, color=:Stability_Categories,
+#     mode="markers"
+# )
 
-show(stdout,"text/plain", C)
+# show(stdout,"text/plain", C)
 
 # test if jacobian calculation is correct
 using ForwardDiff
