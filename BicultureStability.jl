@@ -76,7 +76,8 @@ Ys_Se = 5
 Y_CN_Se = 0.5
 
 # X_Ax = X_Se = 0
-C_N_list = collect(0:0.1:4);
+# C_N_list = collect(0:0.1:4);
+C_N_list = collect(0:1:100);
 C_C_list = C_N_list;
 X_Se = 0
 X_Av = 0
@@ -174,13 +175,13 @@ print(df)
 
 # show(stdout,"text/plain", C)
 
-# test if jacobian calculation is correct
-using ForwardDiff
-import ForwardDiff.jacobian
-f(Av,Se,C,N) = [(mumax_Av*C/(Ks_Av+C) - kd_Av)*Av, 
-                (mumax_Se*N/(Ks_Se+N) - kd_Se)*Se, 
-                Y_CN_Se/Ys_Se*mumax_Se*N/(Ks_Se+N)*Se - mumax_Av*Ys_Av*C/(Ks_Av+C)*Av,
-                Y_NC_Av/Ys_Av*mumax_Av*C/(Ks_Av+C)*Av - mumax_Se/Ys_Se*N/(Ks_Se+N)*Se]
-x0 = [0.0, 0.0, 0.1, 0.1];
-J0 = jacobian(x -> f(x...) ,x0)
-show(stdout, "text/plain", Real_lyapunov_stable)
+# # test if jacobian calculation is correct
+# using ForwardDiff
+# import ForwardDiff.jacobian
+# f(Av,Se,C,N) = [(mumax_Av*C/(Ks_Av+C) - kd_Av)*Av, 
+#                 (mumax_Se*N/(Ks_Se+N) - kd_Se)*Se, 
+#                 Y_CN_Se/Ys_Se*mumax_Se*N/(Ks_Se+N)*Se - mumax_Av*Ys_Av*C/(Ks_Av+C)*Av,
+#                 Y_NC_Av/Ys_Av*mumax_Av*C/(Ks_Av+C)*Av - mumax_Se/Ys_Se*N/(Ks_Se+N)*Se]
+# x0 = [0.0, 0.0, 0.1, 0.1];
+# J0 = jacobian(x -> f(x...) ,x0)
+# show(stdout, "text/plain", Real_lyapunov_stable)
