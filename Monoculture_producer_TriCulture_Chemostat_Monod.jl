@@ -55,7 +55,7 @@ function loadProcessData()
     global E0=0.01 # g/L initial cell concentration 0.7g/L is from Figure 2.4 on Page 34 of David's thesis
     
     # global S0=0.01 # g/L initial substrate concentration
-    global S0=0.5 # g/L initial Se concentration
+    global S0=0.05 # g/L initial Se concentration
     # global N0=1 # g/L initial substrate concentration
     global N0=100 # g/L initial substrate concentration
     # global C0=1 # g/L initial substrate concentration
@@ -71,7 +71,7 @@ function loadProcessData()
     global kLaO=2.766*60 # 1/h # https://www.sciencedirect.com/science/article/pii/S0032959200002727
     global xO2_sat=7.5/16/1000 # mol/L https://www.waterboards.ca.gov/water_issues/programs/swamp/docs/cwt/guidance/3110en.pdf
     global O20=xO2_sat
-    global tspan1=100 # h David's thesis
+    global tspan1=200 # h David's thesis
     global tspan2=100
     global saiin=0.05  # L/min
     global saioutE=0.01 # David's thesis
@@ -86,7 +86,7 @@ function loadProcessData()
     global KA=300
     global KS=300
     # global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\LinearStabilityAnalysis\\ZeroX_Av_X_Se"
-    global out_dir="C:\\Users\\yid\\TemporaryResearchDataStorage\\doe3\\"
+    global out_dir="C:\\Users\\yid\\TemporaryResearchDataStorage\\doe4_tspan_200\\"
     # println("Parameters Loaded!")
 end
 
