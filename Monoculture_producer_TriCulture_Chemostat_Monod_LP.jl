@@ -12,8 +12,8 @@ function loadProcessData()
     global ksS=0.344
     global ysxA=2.451
     global ysxS=2.54
-    global kdA=0.025
-    global kdS=0.005
+    global kdA=0.01
+    global kdS=0.1
     global yspA=0.018
     global mu_maxE=0.34 #h^-1 from David's thesis(meeting slides from Prof.Lin) 1.7
     # global mu_maxA=0.34 #h^-1 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5478974/
@@ -50,12 +50,12 @@ function loadProcessData()
     global ysxS=0.17 # https://www.sciencedirect.com/science/article/pii/S0960852406004792
     # global D0= 0.68 # h^-1 initial dilusion rate
     # global A0=0.01 # g/l initial substrate feeding concentration
-    global A0=1 # g/l initial Av concentration
+    global A0=0.5 # g/l initial Av concentration
 
     global E0=0.01 # g/L initial cell concentration 0.7g/L is from Figure 2.4 on Page 34 of David's thesis
     
     # global S0=0.01 # g/L initial substrate concentration
-    global S0=1 # g/L initial Se concentration
+    global S0=0.01 # g/L initial Se concentration
     # global N0=1 # g/L initial substrate concentration
     global N0=100 # g/L initial substrate concentration
     # global C0=1 # g/L initial substrate concentration
@@ -86,8 +86,7 @@ function loadProcessData()
     global KA=300
     global KS=300
     # global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\LinearStabilityAnalysis\\ZeroX_Av_X_Se"
-    global out_dir="C:\\Users\\yid\\TemporaryResearchDataStorage\\doe33_tspan_200\\"
-    # global out_dir="C:\\Users\\yid\\TemporaryResearchDataStorage\\"
+    global out_dir="C:\\Users\\yid\\TemporaryResearchDataStorage\\doe12_tspan_200\\"
     # println("Parameters Loaded!")
 end
 
@@ -122,12 +121,12 @@ function CocultureGrowth(parameterS,parameterA, N1, C1; filename = "NotSpecific"
     # savefig("muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).pdf")
  
     # Microbial
-    plot(tt1,At1,label="Av concentration profile when biculture",xaxis="Time(hr)",yaxis="Biomass(g/L)",framestyle=:box#=, legend=:topleft=#)
-    plot!(tt1,St1,label="Se concentration profile when biculture")
+    plot(tt1,At1,label="Av concentration profile when biculture",xaxis="Time(hr)",yaxis="Av(g/L)",framestyle=:box,legend=:topleft)
+    plot!(tt1,St1,label="Se concentration profile when biculture",xaxis="Time(hr)",yaxis="Se(g/L)")
     println(out_dir)
     Plots.savefig(out_dir * "Microbial_" * filename * "_X_Av_$(@sprintf("%.2f",A0))_X_Se_$(@sprintf("%.2f",S0))_muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).pdf")
-    plot(tt1,Ct1,label="Sucrose concentration profile when biculture",xaxis="Time(hr)",yaxis="Nutrient(g/L)",framestyle=:box#=, legend=:topleft=#)
-    plot!(tt1,Nt1,label="Ammonia concentration profile when biculture")
+    plot(tt1,Ct1,label="Sucrose concentration profile when biculture",xaxis="Time(hr)",yaxis="Sucrose(g/L)",framestyle=:box,legend=:topleft)
+    plot!(tt1,Nt1,label="Ammonia concentration profile when biculture",xaxis="Time(hr)",yaxis="Ammonia(g/L)")
     Plots.savefig(out_dir * "Nutrient_" * filename * "_X_Av_$(@sprintf("%.2f",A0))_X_Se_$(@sprintf("%.2f",S0))_muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).pdf")
 
     # Store data into excel files
@@ -277,28 +276,20 @@ function Startup(A,S,N,C,tspan1,pS,pA) # batch
     # pS=[mu_maxS ksS ysxS yspS msS]
     # pA=[mu_maxA ksA ysxA yspA msA]
     # Monod Equation
-    # Original case
     # f(y,p,t)=[(pA[1]*y[3]/(pA[2]+y[3]) - kdA)*y[1],# X(Av)
     #      (pS[1]*y[4]/(pS[2]+y[4]) - kdS)*y[2],# X(Se)
     #      max(y[3],0)/y[3]*( - (pA[1]*y[3]/(pA[2]+y[3])/pA[3]+pA[5])*y[1] + pS[4]*(pS[1]*y[4]/(ksS+y[4]))/pS[3]*y[2]), # Sucrose
     #      max(y[4],0)/y[4]*(pA[4]*pA[1]*y[3]/(pA[2]+y[3])*y[1]/pA[3] - (pS[1]*y[4]/(pS[2]+y[4])/pS[3]+pS[5])*y[2])] # Ammonia
-    
-    # Without max term (Note pS[5] and pA[5] are ms here!)
-    f(y,p,t)=[(pA[1]*y[3]/(pA[2]+y[3]) - kdA)*y[1],# X(Av)
-         (pS[1]*y[4]/(pS[2]+y[4]) - kdS)*y[2],# X(Se)
-         ( - (pA[1]*y[3]/(pA[2]+y[3])/pA[3]+pA[5])*y[1] + pS[4]*(pS[1]*y[4]/(pS[2]+y[4]))/pS[3]*y[2]), # Sucrose
-         (pA[4]*pA[1]*y[3]/(pA[2]+y[3])*y[1]/pA[3] - (pS[1]*y[4]/(pS[2]+y[4])/pS[3]+pS[5])*y[2])] # Ammonia
-
-     # Without max term, with LP model in production term # NOTE: pA[5] and pS[5] are the beta, the non-growth associated productivity coefficient
-    #  f(y,p,t)=[(pA[1]*y[3]/(pA[2]+y[3]) - kdA)*y[1],# X(Av)
-    #  (pS[1]*y[4]/(pS[2]+y[4]) - kdS)*y[2],# X(Se)
-    #  - (pA[1]*y[3]/(pA[2]+y[3])/pA[3])*y[1] + pS[4]*(pS[1]*y[4]/(pS[2]+y[4]) - kdS)*y[2] + pS[5]*y[2], # Sucrose
-    #  - (pS[1]*y[4]/(pS[2]+y[4])/pS[3])*y[2] + pA[4]*(pA[1]*y[3]/(pA[2]+y[3]) - kdA)*y[1] + pA[5]*y[1]] # Ammonia   
 
     # f(y,p,t)=[(pA[1]*y[3]/(pA[2]+y[3]) - kdA)*y[1],# X(Av)
     #      (pS[1]*y[4]/(pS[2]+y[4]) - kdS)*y[2],# X(Se)
-    #      max(y[3],0)/y[3]*( - (pA[1]*y[3]/(pA[2]+y[3])/pA[3])*y[1]) + pS[4]*(pS[1]*y[4]/(ksS+y[4]))/pS[3]*y[2], # Sucrose
-    #      max(y[4],0)/y[4]*( - (pS[1]*y[4]/(pS[2]+y[4])/pS[3])*y[2]) + pA[4]*pA[1]*y[3]/(pA[2]+y[3])*y[1]/pA[3]] # Ammonia
+    #      max(y[3],0)/y[3]*( - (pA[1]*y[3]/(pA[2]+y[3])/pA[3]+pA[5])*y[1] + pS[4]*(pS[1]*y[4]/(ksS+y[4]))/pS[3]*y[2]), # Sucrose
+    #      max(y[4],0)/y[4]*(pA[4]*pA[1]*y[3]/(pA[2]+y[3])*y[1]/pA[3] - (pS[1]*y[4]/(pS[2]+y[4])/pS[3]+pS[5])*y[2])] # Ammonia
+
+    # f(y,p,t)=[(pA[1]*y[3]/(pA[2]+y[3]) - kdA)*y[1],# X(Av)
+    #      (pS[1]*y[4]/(pS[2]+y[4]) - kdS)*y[2],# X(Se)
+    #      max(y[3],0)/y[3]*( - (pA[1]*y[3]/(pA[2]+y[3])/pA[3]+pA[5])*y[1]) + pS[4]*(pS[1]*y[4]/(ksS+y[4]))/pS[3]*y[2], # Sucrose
+    #      max(y[4],0)/y[4]*( - (pS[1]*y[4]/(pS[2]+y[4])/pS[3]+pS[5])*y[2]) + pA[4]*pA[1]*y[3]/(pA[2]+y[3])*y[1]/pA[3]] # Ammonia
     
     # Use approximation when function close to 0
     k = 100
@@ -307,17 +298,10 @@ function Startup(A,S,N,C,tspan1,pS,pA) # batch
     #      1/(1 + exp( - k*y[3])) *( - (pA[1]*y[3]/(pA[2]+y[3])/pA[3]+pA[5])*y[1] + pS[4]*(pS[1]*y[4]/(ksS+y[4]))/pS[3]*y[2]), # Sucrose
     #      1/(1 + exp( - k*y[4])) *(pA[4]*pA[1]*y[3]/(pA[2]+y[3])*y[1]/pA[3] - (pS[1]*y[4]/(pS[2]+y[4])/pS[3]+pS[5])*y[2])] # Ammonia
 
-    # doe12
-    # f(y,p,t)=[ 1/(1 + exp( - k*y[1])) * (- kdA)*y[1] + pA[1]*y[3]/(pA[2]+y[3])*y[1],# X(Av)
-    #      1/(1 + exp( - k*y[2])) * ( - kdS)*y[2] + pS[1]*y[4]/(pS[2]+y[4])*y[2],# X(Se)
-    #      1/(1 + exp( - k*y[3])) * ( - (pA[1]*y[3]/(pA[2]+y[3])/pA[3]+pA[5])*y[1]) + pS[4]*(pS[1]*y[4]/(ksS+y[4]))/pS[3]*y[2], # Sucrose
-    #      1/(1 + exp( - k*y[4])) * ( - (pS[1]*y[4]/(pS[2]+y[4])/pS[3]+pS[5])*y[2]) + pA[4]*pA[1]*y[3]/(pA[2]+y[3])*y[1]/pA[3]] # Ammonia
-    
-    # doe14
-    # f(y,p,t)=[ 2*max(1/(1 + exp( - k*y[1]))-0.5,0) * (- kdA)*y[1] + pA[1]*y[3]/(pA[2]+y[3])*y[1],# X(Av)
-    #      2*max(1/(1 + exp( - k*y[2]))-0.5,0) * ( - kdS)*y[2] + pS[1]*y[4]/(pS[2]+y[4])*y[2],# X(Se)
-    #      2*max(1/(1 + exp( - k*y[3]))-0.5,0) * ( - (pA[1]*y[3]/(pA[2]+y[3])/pA[3]+pA[5])*y[1]) + pS[4]*(pS[1]*y[4]/(ksS+y[4]))/pS[3]*y[2], # Sucrose
-    #      2*max(1/(1 + exp( - k*y[4]))-0.5,0) * ( - (pS[1]*y[4]/(pS[2]+y[4])/pS[3]+pS[5])*y[2]) + pA[4]*pA[1]*y[3]/(pA[2]+y[3])*y[1]/pA[3]] # Ammonia
+    f(y,p,t)=[ 1/(1 + exp( - k*y[1])) * (- kdA) *y[1] + pA[1]*y[3]/(pA[2]+y[3])*y[1],# X(Av)
+         1/(1 + exp( - k*y[2])) * ( - kdS)*y[2] + pS[1]*y[4]/(pS[2]+y[4])*y[2],# X(Se)
+         1/(1 + exp( - k*y[3])) * ( - (pA[1]*y[3]/(pA[2]+y[3])/pA[3]+pA[5])*y[1]) + pS[4]*(1/(1 + exp( - k*y[2])) * ( - kdS)*y[2] + pS[1]*y[4]/(pS[2]+y[4])*y[2]) + pS[5]*y[2], # Sucrose
+         1/(1 + exp( - k*y[4])) * ( - (pS[1]*y[4]/(pS[2]+y[4])/pS[3]+pS[5])*y[2]) + pA[4]*(1/(1 + exp( - k*y[1])) * (- kdA) *y[1] + pA[1]*y[3]/(pA[2]+y[3])*y[1]) + pA[5]*y[1]] # Ammonia
 
     # The following is wrong because (y + abs(y))/2 = y not 1 when y>0
     # f(y,p,t)=[ (y[1]+abs(y[1]))/2 * ( - kdA)*y[1] + pA[1]*y[3]/(pA[2]+y[3])*y[1],# X(Av)
