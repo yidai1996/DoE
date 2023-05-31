@@ -50,12 +50,12 @@ function loadProcessData()
     global ysxS=0.17 # https://www.sciencedirect.com/science/article/pii/S0960852406004792
     # global D0= 0.68 # h^-1 initial dilusion rate
     # global A0=0.01 # g/l initial substrate feeding concentration
-    global A0=1 # g/l initial Av concentration
+    global A0=0.001 # g/l initial Av concentration
 
     global E0=0.01 # g/L initial cell concentration 0.7g/L is from Figure 2.4 on Page 34 of David's thesis
     
     # global S0=0.01 # g/L initial substrate concentration
-    global S0=1 # g/L initial Se concentration
+    global S0=0.001 # g/L initial Se concentration
     # global N0=1 # g/L initial substrate concentration
     global N0=100 # g/L initial substrate concentration
     # global C0=1 # g/L initial substrate concentration
@@ -78,7 +78,8 @@ function loadProcessData()
     global saioutS=0.01
     global saioutA=0.01
     global V=0.5 #L
-    global Vt=3*V
+    global Vt=2*V
+    # global Vt=3*V
     global DE=saioutE/V # 0.2
     global DA=saioutA/V # 0.2
     global DS=saioutS/V # 0.2
@@ -86,7 +87,8 @@ function loadProcessData()
     global KA=300
     global KS=300
     # global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\LinearStabilityAnalysis\\ZeroX_Av_X_Se"
-    global out_dir="C:\\Users\\yid\\TemporaryResearchDataStorage\\doe33_tspan_200\\"
+    global out_dir="C:\\Users\\yid\\TemporaryResearchDataStorage\\doe60_tspan_200\\"
+    # global out_dir="C:\\Users\\10060\\Downloads\\Research\\doe\\test\\"
     # global out_dir="C:\\Users\\yid\\TemporaryResearchDataStorage\\"
     # println("Parameters Loaded!")
 end
@@ -122,12 +124,13 @@ function CocultureGrowth(parameterS,parameterA, N1, C1; filename = "NotSpecific"
     # savefig("muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).pdf")
  
     # Microbial
-    plot(tt1,At1,label="Av concentration profile when biculture",xaxis="Time(hr)",yaxis="Biomass(g/L)",framestyle=:box#=, legend=:topleft=#)
-    plot!(tt1,St1,label="Se concentration profile when biculture")
+    println("saving figures")
+    Plots.plot(tt1,At1,label="Av concentration profile when biculture",xaxis="Time(hr)",yaxis="Biomass(g/L)",framestyle=:box#=, legend=:topleft=#)
+    Plots.plot!(tt1,St1,label="Se concentration profile when biculture")
     println(out_dir)
     Plots.savefig(out_dir * "Microbial_" * filename * "_X_Av_$(@sprintf("%.2f",A0))_X_Se_$(@sprintf("%.2f",S0))_muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).pdf")
-    plot(tt1,Ct1,label="Sucrose concentration profile when biculture",xaxis="Time(hr)",yaxis="Nutrient(g/L)",framestyle=:box#=, legend=:topleft=#)
-    plot!(tt1,Nt1,label="Ammonia concentration profile when biculture")
+    Plots.plot(tt1,Ct1,label="Sucrose concentration profile when biculture",xaxis="Time(hr)",yaxis="Nutrient(g/L)",framestyle=:box#=, legend=:topleft=#)
+    Plots.plot!(tt1,Nt1,label="Ammonia concentration profile when biculture")
     Plots.savefig(out_dir * "Nutrient_" * filename * "_X_Av_$(@sprintf("%.2f",A0))_X_Se_$(@sprintf("%.2f",S0))_muS_$(@sprintf("%.2f",s1)) ksS_$(@sprintf("%.2f",s2)) ysxS_$(@sprintf("%.2f",s3)) yspS_$(@sprintf("%.2f",s4)) msS_$(@sprintf("%.2f",s5)) muA_$(@sprintf("%.2f",a1)) ksA_$(@sprintf("%.2f",a2)) ysxA_$(@sprintf("%.2f",a3)) yspA_$(@sprintf("%.2f",a4)) msA_$(@sprintf("%.2f",a5)).pdf")
 
     # Store data into excel files
@@ -283,17 +286,23 @@ function Startup(A,S,N,C,tspan1,pS,pA) # batch
     #      max(y[3],0)/y[3]*( - (pA[1]*y[3]/(pA[2]+y[3])/pA[3]+pA[5])*y[1] + pS[4]*(pS[1]*y[4]/(ksS+y[4]))/pS[3]*y[2]), # Sucrose
     #      max(y[4],0)/y[4]*(pA[4]*pA[1]*y[3]/(pA[2]+y[3])*y[1]/pA[3] - (pS[1]*y[4]/(pS[2]+y[4])/pS[3]+pS[5])*y[2])] # Ammonia
     
-    # Without max term (Note pS[5] and pA[5] are ms here!)
-    f(y,p,t)=[(pA[1]*y[3]/(pA[2]+y[3]) - kdA)*y[1],# X(Av)
-         (pS[1]*y[4]/(pS[2]+y[4]) - kdS)*y[2],# X(Se)
-         ( - (pA[1]*y[3]/(pA[2]+y[3])/pA[3]+pA[5])*y[1] + pS[4]*(pS[1]*y[4]/(pS[2]+y[4]))/pS[3]*y[2]), # Sucrose
-         (pA[4]*pA[1]*y[3]/(pA[2]+y[3])*y[1]/pA[3] - (pS[1]*y[4]/(pS[2]+y[4])/pS[3]+pS[5])*y[2])] # Ammonia
+    # # Without max term (Note pS[5] and pA[5] are ms here!)
+    # f(y,p,t)=[(pA[1]*y[3]/(pA[2]+y[3]) - kdA)*y[1],# X(Av)
+    #      (pS[1]*y[4]/(pS[2]+y[4]) - kdS)*y[2],# X(Se)
+    #      ( - (pA[1]*y[3]/(pA[2]+y[3])/pA[3]+pA[5])*y[1] + pS[4]*(pS[1]*y[4]/(pS[2]+y[4]))/pS[3]*y[2]), # Sucrose
+    #      (pA[4]*pA[1]*y[3]/(pA[2]+y[3])*y[1]/pA[3] - (pS[1]*y[4]/(pS[2]+y[4])/pS[3]+pS[5])*y[2])] # Ammonia
 
-     # Without max term, with LP model in production term # NOTE: pA[5] and pS[5] are the beta, the non-growth associated productivity coefficient
+    # Without max term (Note pS[5] and pA[5] are ms here!) Continuous Flow! 
+    f(y,p,t)=[(pA[1]*y[3]/(pA[2]+y[3]) - kdA - DA)*y[1],# X(Av)
+         (pS[1]*y[4]/(pS[2]+y[4]) - kdS - DS)*y[2],# X(Se)
+         ( - V/Vt*(pA[1]*y[3]/(pA[2]+y[3])/pA[3]+pA[5])*y[1] + V/Vt*pS[4]*(pS[1]*y[4]/(pS[2]+y[4]))/pS[3]*y[2] - (V*DS + V*DA)*y[3]), # Sucrose
+         (V/Vt*pA[4]*pA[1]*y[3]/(pA[2]+y[3])*y[1]/pA[3] - V/Vt*(pS[1]*y[4]/(pS[2]+y[4])/pS[3]+pS[5])*y[2] - (V*DS + V*DA)*y[4])] # Ammonia
+
+    # Without max term, with LP model in production term # NOTE: pA[5] and pS[5] are the beta, the non-growth associated productivity coefficient
     #  f(y,p,t)=[(pA[1]*y[3]/(pA[2]+y[3]) - kdA)*y[1],# X(Av)
     #  (pS[1]*y[4]/(pS[2]+y[4]) - kdS)*y[2],# X(Se)
-    #  - (pA[1]*y[3]/(pA[2]+y[3])/pA[3])*y[1] + pS[4]*(pS[1]*y[4]/(pS[2]+y[4]) - kdS)*y[2] + pS[5]*y[2], # Sucrose
-    #  - (pS[1]*y[4]/(pS[2]+y[4])/pS[3])*y[2] + pA[4]*(pA[1]*y[3]/(pA[2]+y[3]) - kdA)*y[1] + pA[5]*y[1]] # Ammonia   
+    #  max(y[3],0)/y[3]*(- (pA[1]*y[3]/(pA[2]+y[3])/pA[3])*y[1] + pS[4]*(pS[1]*y[4]/(pS[2]+y[4]) - kdS)*y[2] + pS[5]*y[2]), # Sucrose
+    #  max(y[4],0)/y[4]*(- (pS[1]*y[4]/(pS[2]+y[4])/pS[3])*y[2] + pA[4]*(pA[1]*y[3]/(pA[2]+y[3]) - kdA)*y[1] + pA[5]*y[1])] # Ammonia   
 
     # f(y,p,t)=[(pA[1]*y[3]/(pA[2]+y[3]) - kdA)*y[1],# X(Av)
     #      (pS[1]*y[4]/(pS[2]+y[4]) - kdS)*y[2],# X(Se)

@@ -1,7 +1,7 @@
 using XLSX, DataFrames, CSV
 
 # Distinguish stability by checking the last two points in all growth curves
-out_dir = "C:\\Users\\yid\\TemporaryResearchDataStorage\\doe21_tspan_200\\excel\\"
+out_dir = "C:\\Users\\yid\\TemporaryResearchDataStorage\\doe29_tspan_200\\excel\\"
 index_files = readdir(out_dir);
 # build a dataframe for C/N and stability (growth curve regions)
 df1 = DataFrame([Float64[], Float64[], Float64[]], ["Sucrose","Ammonia","Stability"])
@@ -68,16 +68,16 @@ end
 println(count)
 println(df1)
 println(df2)
-CSV.write("C:\\Users\\yid\\TemporaryResearchDataStorage\\doe21_tspan_200\\StabilityAnalysisResults\\StabilityRegionsMicrobial.csv",df1)
-CSV.write("C:\\Users\\yid\\TemporaryResearchDataStorage\\doe21_tspan_200\\StabilityAnalysisResults\\StabilityRegionsNutrient.csv",df2)
+CSV.write("C:\\Users\\yid\\TemporaryResearchDataStorage\\doe29_tspan_200\\StabilityAnalysisResults\\StabilityRegionsMicrobial.csv",df1)
+CSV.write("C:\\Users\\yid\\TemporaryResearchDataStorage\\doe29_tspan_200\\StabilityAnalysisResults\\StabilityRegionsNutrient.csv",df2)
 
 
 # Plot the stability regions
 using Plots
 # using StatsPlots
 # read data from CSV file by making a dataframe
-df_nutrient = CSV.read("C:\\Users\\yid\\TemporaryResearchDataStorage\\doe21_tspan_200\\StabilityAnalysisResults\\StabilityRegionsNutrient.csv",DataFrame)
-df_microbial = CSV.read("C:\\Users\\yid\\TemporaryResearchDataStorage\\doe21_tspan_200\\StabilityAnalysisResults\\StabilityRegionsMicrobial.csv",DataFrame)
+df_nutrient = CSV.read("C:\\Users\\yid\\TemporaryResearchDataStorage\\doe24_tspan_200\\StabilityAnalysisResults\\StabilityRegionsNutrient.csv",DataFrame)
+df_microbial = CSV.read("C:\\Users\\yid\\TemporaryResearchDataStorage\\doe24_tspan_200\\StabilityAnalysisResults\\StabilityRegionsMicrobial.csv",DataFrame)
 count_row = nrow(df_nutrient);
 # count_feature = ncol(df_all) - 2
 df1 = Matrix(df_microbial);
@@ -130,7 +130,7 @@ scatter(New_data_0[:,1], New_data_0[:,2], xlabel = "C(Sucrose)", ylabel = "C(Amm
 scatter!(New_data_1[:,1], New_data_1[:,2], label = "With A Bump", markersize = 4,  markercolor = "Light Pink", markerstrokewidth = 0)
 scatter!(New_data_2[:,1], New_data_2[:,2], label = "Without Bumps", markersize = 4, markercolor = "Dark Magenta", markerstrokewidth = 0)
 
-Plots.savefig("C:\\Users\\yid\\TemporaryResearchDataStorage\\doe21_tspan_200\\StabilityAnalysisResults\\StabilityRegionsMicrobial.pdf")
+Plots.savefig("C:\\Users\\yid\\TemporaryResearchDataStorage\\doe24_tspan_200\\StabilityAnalysisResults\\StabilityRegionsMicrobial.pdf")
 
 count_total = 0;
 count_0_region = 0;
@@ -177,7 +177,7 @@ scatter(New_data_0[:,1], New_data_0[:,2], xlabel = "C(Sucrose)", ylabel = "C(Amm
 scatter!(New_data_1[:,1], New_data_1[:,2], label = "C Not Touch Stable State", markersize = 4,  markercolor = "Light Pink", markerstrokewidth = 0)
 scatter!(New_data_2[:,1], New_data_2[:,2], label = "N decreasing", markersize = 2, markercolor = "Dark Magenta", markerstrokewidth = 0)
 
-Plots.savefig("C:\\Users\\yid\\TemporaryResearchDataStorage\\doe21_tspan_200\\StabilityAnalysisResults\\StabilityRegionsNutrient.pdf")
+Plots.savefig("C:\\Users\\yid\\TemporaryResearchDataStorage\\doe24_tspan_200\\StabilityAnalysisResults\\StabilityRegionsNutrient.pdf")
 
 # using PlotlyJS
 # plot([
