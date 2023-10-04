@@ -86,8 +86,7 @@ end
 mumax_Av = 0.5
 kd_Av = 0.05*mumax_Av # 5% of mumax_Av
 # Ks_Av = 5*17.03*10^(-3)  # 5mM of sucrose
-# Ks_Av = 5*342.3*10^(-3) # 5mM of sucrose
-Ks_Av = 1.7 
+Ks_Av = 5*342.3*10^(-3) # 5mM of sucrose
 Ys_Av = 1
 Y_NC_Av = 2 # alpha_N
 mumax_Se = 0.1
@@ -108,8 +107,8 @@ beta_N = 0 # 0 # 0.5
 
 # X_Ax = X_Se = 0
 # C_N_list = collect(0:0.1:4);
-C_N_list = LinRange(0,10,11);
-C_C_list = C_N_list;
+C_C_list = LinRange(0,10,11);
+C_N_list = 0.1*C_C_list;
 X_Se = 0
 X_Av = 0
 
