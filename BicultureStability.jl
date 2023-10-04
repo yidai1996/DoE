@@ -85,13 +85,15 @@ end
 
 mumax_Av = 0.5
 kd_Av = 0.05*mumax_Av # 5% of mumax_Av
-Ks_Av = 5*17.03*10^(-3) # 5mM of ammonia
+# Ks_Av = 5*17.03*10^(-3)  # 5mM of sucrose
+Ks_Av = 5*342.3*10^(-3) # 5mM of sucrose
 Ys_Av = 1
 Y_NC_Av = 2 # alpha_N
 mumax_Se = 0.1
 kd_Se = 0.05*mumax_Se
-# Ks_Se = 5*342.3*10^(-3) # 5mM of sucrose
-Ks_Se = 0.344 # 1.5 1.3 1.1 0.9 0.7 0.5 0.3 0.1
+Ks_Se = 5*17.03*10^(-3) # 5mM of ammonia
+# Ks_Se = 0.02 # 5mM of ammonia
+# Ks_Se = 0.344 # 1.5 1.3 1.1 0.9 0.7 0.5 0.3 0.1
 Ys_Se = 1  
 Y_CN_Se = 0.5 # alpha_C
 beta_C = 0 # 0 # 0.5
@@ -105,8 +107,8 @@ beta_N = 0 # 0 # 0.5
 
 # X_Ax = X_Se = 0
 # C_N_list = collect(0:0.1:4);
-C_N_list = LinRange(0,100,101);
-C_C_list = C_N_list;
+C_C_list = LinRange(0,10,11);
+C_N_list = 0.1*C_C_list;
 X_Se = 0
 X_Av = 0
 
@@ -146,7 +148,7 @@ function StabilityAnalysis2D_Nutrient(C_N_list, C_C_list)
             # ParameterA = [mumax_Av, Ks_Av, Ys_Av, Y_NC_Av, 0.5];
             ParameterS = [mumax_Se, Ks_Se, Ys_Se, Y_CN_Se, beta_C];
             ParameterA = [mumax_Av, Ks_Av, Ys_Av, Y_NC_Av, beta_N];
-            # CocultureGrowth(ParameterS, ParameterA, C_N, C_C; filename = "C_$(@sprintf("%.2f",C_C))_N__$(@sprintf("%.2f",C_N))")
+            CocultureGrowth(ParameterS, ParameterA, C_N, C_C; filename = "C_$(@sprintf("%.2f",C_C))_N__$(@sprintf("%.2f",C_N))")
         end
     end
 
