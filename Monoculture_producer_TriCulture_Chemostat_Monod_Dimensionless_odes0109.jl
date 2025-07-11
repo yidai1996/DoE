@@ -1,18 +1,21 @@
 # Simulations of Dimensionless ODEs
+# using DifferentialEquations, NLsolve, XLSX, Printf
 using Plots, DifferentialEquations, NLsolve, XLSX, Printf
-# TODO Dimensionless ODEs doesn't have the same results as the odes with Dimensionless Number (N)
+
 # function loadProcessData()
 # function loadProcessData(N9,N10)
 # function loadProcessData(TC)
 function loadProcessData(N9,N10,N11,N12)
-    global mu_maxA = 0.11
-    global kdA = 0.05*mu_maxA # 5% of mu_maxA
+    global mu_maxA = 0.22
+    global kdA = 0.05*0.11 # 5% of mu_maxA
     global Ks_Av = 5*342.3*10^(-3) # 5mM of sucrose
     global Ys_Av = 1
     global Yp_Av = 2 # alpha_N
-    global mu_maxS = 0.0217
+    # global mu_maxS = 0.0217
+    # Assume mu_maxS = mu_maxA for the simplest case
+    global mu_maxS = mu_maxA
     global mu_maxE = 0.2
-    global kdS = 0.05*mu_maxS
+    global kdS = 0.05*0.11
     global kdE = 0.05*mu_maxE
     global Ks_Se = 5*17.03*10^(-3) # 5mM of ammonia
     global Ks_S_Ec = 1 
@@ -38,13 +41,15 @@ function loadProcessData(N9,N10,N11,N12)
     V_ec = 1
     V = V_se+V_av+V_ec
     
+    # Test only for coculture and follow the dimensionless number value assumption in DoE catch up meeting 1204_2 slides
     tc = 1/mu_maxS # N1 = 1
     # tc = TC # N1 = 1
     # C_S_c = Ks_Av
-    global C_S_c = Ks_Se
+    # global C_S_c = Ks_Se
+    global C_S_c = Ks_Av
     global C_NH4_c = Ks_Se
-    global X_Se_c = C_S_c
-    global X_Av_c = C_NH4_c
+    global X_Se_c = Ks_Se*Ys_Se
+    global X_Av_c = Ks_Av*Ys_Av
     global C_P_c = Yp_Ec*Ks_Av*Ys_S_Ec
     global X_Ec_c = Ks_Av*Ys_S_Ec
     N1 = tc*mu_maxS
@@ -91,7 +96,7 @@ function loadProcessData(N9,N10,N11,N12)
     # global S0 = 0.01
     global tspan1=2000
     global tspan2=100
-    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\DimensionlessAnalysis\\temp\\"
+    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\DimensionlessAnalysis\\test0121\\"
 
     println("Parameters Loaded!")
     return [tc X_Se_c X_Av_c C_S_c C_NH4_c C_P_c X_Ec_c D_Ec D_Av], [N1 N2 N3 N4 N5 N6 N7 N8 N9 N10 N11 N12 N13 N14 N15 N16 N17 N18 N19 N20 N21 N22 N23 N24 N25 N26 N27 N28 N29 N30]
@@ -435,17 +440,20 @@ end
 # end
 
 
-# 03/25 sampling
-N9 = LinRange(0.1, 1, 10)
-N10 = LinRange(0.1, 1, 10)
-N11 = LinRange(0.1, 1, 10)
-N12 = LinRange(0.1, 1, 10)
-for i in eachindex(N9)
-    for j in eachindex(N10)
-        for k in eachindex(N11)
-            for l in eachindex(N12)
-                BicultureGrowth(0.1, 0.1, 0.01, 0.01, N9[i], N10[j], N11[k], N12[l]; filename = "N9N10N11N12_3Dplots")
-            end
-        end
-    end
-end
+# # 03/25 sampling
+# N9 = LinRange(0.1, 1, 10)
+# N10 = LinRange(0.1, 1, 10)
+# N11 = LinRange(0.1, 1, 10)
+# N12 = LinRange(0.1, 1, 10)
+# for i in eachindex(N9)
+#     for j in eachindex(N10)
+#         for k in eachindex(N11)
+#             for l in eachindex(N12)
+#                 BicultureGrowth(0.1, 0.1, 0.01, 0.01, N9[i], N10[j], N11[k], N12[l]; filename = "N9N10N11N12_3Dplots")
+#             end
+#         end
+#     end
+# end
+
+# 01/09/25
+BicultureGrowth(0.01, 0.01, 0.01, 0.01, 5.25, 5.25, 0, 0; filename = "doubled_mumax_C_S_c_Ks_Av_0121")
