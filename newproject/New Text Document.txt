@@ -1,0 +1,16 @@
+CA_0 = []
+N_9 = []
+N_11 = []
+# for a in eachindex(CA_0)
+    # for b in eachindex(N_9)
+        # for c in eachindex(N_11)
+        #     BicultureGrowth(CA_0[a], CA_0[a], 0.01, 0.01, N_9[c], N_9[c], N11[c], N12[c]; filename = "Hybrid_")
+        # end
+    # end
+# end
+
+5. Put the removed figures into supplymentary document (word)
+6. Move all notations into Appendix
+7. Revise linear relationship part when N9N10=1
+8. Log scale of N9 vs. N11/N3
+9. all growth/ mid of both / non-growth dominated, not only long-term behavior, but also short term or some other new behavior.

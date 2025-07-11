@@ -1,19 +1,22 @@
 # Simulations of Dimensionless ODEs
+# using DifferentialEquations, NLsolve, XLSX, Printf
 using Plots, DifferentialEquations, NLsolve, XLSX, Printf
-# TODO Dimensionless ODEs doesn't have the same results as the odes with Dimensionless Number (N)
+
 # function loadProcessData()
 # function loadProcessData(N9,N10)
 # function loadProcessData(TC)
 function loadProcessData(N9,N10,N11,N12)
     global mu_maxA = 0.11
-    global kdA = 0.05*mu_maxA # 5% of mu_maxA
+    global kdA = 0.2*0.11 # 5% of mu_maxA # N4
     global Ks_Av = 5*342.3*10^(-3) # 5mM of sucrose
     global Ys_Av = 1
     global Yp_Av = 2 # alpha_N
-    global mu_maxS = 0.0217
+    # global mu_maxS = 0.0217
+    # Assume mu_maxS = mu_maxA for the simplest case
+    global mu_maxS = 0.11
     global mu_maxE = 0.2
-    global kdS = 0.05*mu_maxS
-    global kdE = 0.05*mu_maxE
+    global kdS = kdA
+    global kdE = 0.2*mu_maxE
     global Ks_Se = 5*17.03*10^(-3) # 5mM of ammonia
     global Ks_S_Ec = 1 
     global Ks_N_Ec = 0.3 
@@ -38,13 +41,15 @@ function loadProcessData(N9,N10,N11,N12)
     V_ec = 1
     V = V_se+V_av+V_ec
     
+    # Test only for coculture and follow the dimensionless number value assumption in DoE catch up meeting 1204_2 slides
     tc = 1/mu_maxS # N1 = 1
     # tc = TC # N1 = 1
     # C_S_c = Ks_Av
-    global C_S_c = Ks_Se
+    # global C_S_c = Ks_Se
+    global C_S_c = Ks_Av
     global C_NH4_c = Ks_Se
-    global X_Se_c = C_S_c
-    global X_Av_c = C_NH4_c
+    global X_Se_c = Ks_Se*Ys_Se
+    global X_Av_c = Ks_Av*Ys_Av
     global C_P_c = Yp_Ec*Ks_Av*Ys_S_Ec
     global X_Ec_c = Ks_Av*Ys_S_Ec
     N1 = tc*mu_maxS
@@ -89,9 +94,9 @@ function loadProcessData(N9,N10,N11,N12)
 
     # global A0 = 0.01
     # global S0 = 0.01
-    global tspan1=2000
+    global tspan1=20000
     global tspan2=100
-    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\DimensionlessAnalysis\\temp\\"
+    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\DimensionlessAnalysis\\test0422formanuscript\\"
 
     println("Parameters Loaded!")
     return [tc X_Se_c X_Av_c C_S_c C_NH4_c C_P_c X_Ec_c D_Ec D_Av], [N1 N2 N3 N4 N5 N6 N7 N8 N9 N10 N11 N12 N13 N14 N15 N16 N17 N18 N19 N20 N21 N22 N23 N24 N25 N26 N27 N28 N29 N30]
@@ -118,7 +123,7 @@ function BicultureGrowth(N0, C0, A0_given, S0_given, N9, N10, N11, N12; filename
     println("Dimensionless Numbers are: ", Dimensionless_Numbers)
     # global tt1,At1,St1,Ct1,Nt1=Startup1(A0,S0,N0,C0,tspan1,Critical_Numbers)
     # global tt1,At1,St1,Ct1,Nt1=Startup2(A0_given,S0_given,N0,C0,tspan1,Dimensionless_Numbers)
-    global tt1,At1,St1,Ct1,Nt1=Startup3(A0_given,S0_given,N0,C0,tspan1,Dimensionless_Numbers)
+    global tt1,At1,St1,Ct1,Nt1,At2,St2=Startup3(A0_given,S0_given,N0,C0,tspan1,Dimensionless_Numbers) # At2 and St2 is the measured cell concentration
     # Startup stage
     # global dA1dt=zeros(size(tt1)[1])
     # global dS1dt=zeros(size(tt1)[1])
@@ -137,27 +142,33 @@ function BicultureGrowth(N0, C0, A0_given, S0_given, N9, N10, N11, N12; filename
     c4 = Critical_Numbers[4]
     c5 = Critical_Numbers[5]
 
-
     # Microbial
     println("saving figures")
-    Plots.plot(tt1,At1,label="Av",xaxis="Dimensionless Time",yaxis="Dimensionless Biomass Concentration",framestyle=:box#=, legend=:topleft=#)
-    Plots.plot!(tt1,St1,label="Se")
+    Plots.plot(tt1,At1,label="A",xaxis="Dimensionless Time",yaxis="Dimensionless Biomass Concentration",framestyle=:box#=, legend=:topleft=#)
+    Plots.plot!(tt1,St1,label="B")
     println(out_dir)
-    Plots.savefig(out_dir * "Microbial_" * filename * "_S0_$(@sprintf("%.3f",C0))_N0_$(@sprintf("%.3f",N0))_tc_$(@sprintf("%.2f",c1)) XSec_$(@sprintf("%.2f",c2)) XAvc_$(@sprintf("%.2f",c3)) CSc_$(@sprintf("%.2f",c4)) CAs_$(@sprintf("%.2f",c5)) YsA_$(@sprintf("%.2f",Ys_Av)) YsS_$(@sprintf("%.2f",Ys_Se)) YpA_$(@sprintf("%.2f",Yp_Av)) YpS_$(@sprintf("%.2f",Yp_Se)) N9_$(@sprintf("%.2f",Dimensionless_Numbers[9])) N10_$(@sprintf("%.2f",Dimensionless_Numbers[10])) N11_$(@sprintf("%.2f",Dimensionless_Numbers[11])) N12_$(@sprintf("%.2f",Dimensionless_Numbers[12])).pdf")
-    Plots.plot(tt1,Ct1,label="Sucrose",xaxis="Dimensionless Time",yaxis="Dimensionless Nutrient Concentration",framestyle=:box#=, legend=:topleft=#)
-    Plots.plot!(tt1,Nt1,label="Ammonia")
-    Plots.savefig(out_dir * "Nutrient_" * filename * "_S0_$(@sprintf("%.3f",C0))_N0_$(@sprintf("%.3f",N0))_tc_$(@sprintf("%.2f",c1)) XSec_$(@sprintf("%.2f",c2)) XAvc_$(@sprintf("%.2f",c3)) CSc_$(@sprintf("%.2f",c4)) CAs_$(@sprintf("%.2f",c5)) YsA_$(@sprintf("%.2f",Ys_Av)) YsS_$(@sprintf("%.2f",Ys_Se)) YpA_$(@sprintf("%.2f",Yp_Av)) YpS_$(@sprintf("%.2f",Yp_Se)) N9_$(@sprintf("%.2f",Dimensionless_Numbers[9])) N10_$(@sprintf("%.2f",Dimensionless_Numbers[10])) N11_$(@sprintf("%.2f",Dimensionless_Numbers[11])) N12_$(@sprintf("%.2f",Dimensionless_Numbers[12])).pdf")
+    Plots.savefig(out_dir * "Microbial_" * filename * "_XA0_$(@sprintf("%.3f",A0_given))_XB0_$(@sprintf("%.3f",S0_given))_S0_$(@sprintf("%.6f",C0))_N0_$(@sprintf("%.6f",N0))_N11_$(@sprintf("%.2f",Dimensionless_Numbers[11])) N12_$(@sprintf("%.2f",Dimensionless_Numbers[12])).pdf")
+    Plots.plot(tt1,Ct1,label="B's product",xaxis="Dimensionless Time",yaxis="Dimensionless Nutrient Concentration",framestyle=:box#=, legend=:topleft=#)
+    Plots.plot!(tt1,Nt1,label="A's product")
+    Plots.savefig(out_dir * "Nutrient_" * filename * "_XA0_$(@sprintf("%.3f",A0_given))_XB0_$(@sprintf("%.3f",S0_given))_S0_$(@sprintf("%.6f",C0))_N0_$(@sprintf("%.6f",N0))_N11_$(@sprintf("%.2f",Dimensionless_Numbers[11])) N12_$(@sprintf("%.2f",Dimensionless_Numbers[12])).pdf")
+
+    plot(tt1,At1,label="A(B)",xaxis="Dimensionless Time",yaxis="Dimensionless Living Concentration", color=:blue)#, legend=:topright)
+    plot!(twinx(),tt1, Nt1, yaxis="Dimensionless Nutrient Concentration", label="AP(BP)",color=:red)#), legend=:topleft)
+    Plots.savefig(out_dir * "TEST_" * filename * "_XA0_$(@sprintf("%.3f",A0_given))_XB0_$(@sprintf("%.3f",S0_given))_S0_$(@sprintf("%.6f",C0))_N0_$(@sprintf("%.6f",N0))_N11_$(@sprintf("%.2f",Dimensionless_Numbers[11])) N12_$(@sprintf("%.2f",Dimensionless_Numbers[12])).pdf")
+
 
     # Store data into excel files
     println("writing plots to files")
     # println(out_dir)
-    top_excel_file = out_dir * "\\" * filename * "_S0_$(@sprintf("%.3f",C0))_N0_$(@sprintf("%.3f",N0))_tc_$(@sprintf("%.2f",c1)) XSec_$(@sprintf("%.2f",c2)) XAvc_$(@sprintf("%.2f",c3)) CSc_$(@sprintf("%.2f",c4)) CAs_$(@sprintf("%.2f",c5)) YsA_$(@sprintf("%.2f",Ys_Av)) YsS_$(@sprintf("%.2f",Ys_Se)) YpA_$(@sprintf("%.2f",Yp_Av)) YpS_$(@sprintf("%.2f",Yp_Se)) N9_$(@sprintf("%.2f",Dimensionless_Numbers[9])) N10_$(@sprintf("%.2f",Dimensionless_Numbers[10])) N11_$(@sprintf("%.2f",Dimensionless_Numbers[11])) N12_$(@sprintf("%.2f",Dimensionless_Numbers[12])).xlsx"
-    column_names = ["times (hr)","Av","Se", "Sucrose", "Ammonia"]
-    data=[tt1,At1,St1,Ct1,Nt1]
+    # top_excel_file = out_dir * "\\" * filename * "_XA0_$(@sprintf("%.3f",A0_given))_XB0_$(@sprintf("%.3f",S0_given))_S0_$(@sprintf("%.4f",C0))_N0_$(@sprintf("%.4f",N0))_tc_$(@sprintf("%.2f",c1)) XSec_$(@sprintf("%.2f",c2)) XAvc_$(@sprintf("%.2f",c3)) CSc_$(@sprintf("%.2f",c4)) CAs_$(@sprintf("%.2f",c5)) YsA_$(@sprintf("%.2f",Ys_Av)) YsS_$(@sprintf("%.2f",Ys_Se)) YpA_$(@sprintf("%.2f",Yp_Av)) YpS_$(@sprintf("%.2f",Yp_Se)) N9_$(@sprintf("%.2f",Dimensionless_Numbers[9])) N10_$(@sprintf("%.2f",Dimensionless_Numbers[10])) N11_$(@sprintf("%.2f",Dimensionless_Numbers[11])) N12_$(@sprintf("%.2f",Dimensionless_Numbers[12])).xlsx"
+    top_excel_file = out_dir * "\\" * filename * "_XA0_$(@sprintf("%.3f",A0_given))_XB0_$(@sprintf("%.3f",S0_given))_S0_$(@sprintf("%.6f",C0))_N0_$(@sprintf("%.6f",N0))_N11_$(@sprintf("%.2f",Dimensionless_Numbers[11])) N12_$(@sprintf("%.2f",Dimensionless_Numbers[12])).xlsx"
+
+    column_names = ["times (hr)","A(Av)","B(Se)", "BP(Sucrose)", "AP(Ammonia)", "A(Av measured)", "B(Se measured)"]
+    data=[tt1,At1,St1,Ct1,Nt1, At2, St2]
     # write to excel file
     XLSX.writetable(top_excel_file, data, column_names)
     
-    return tt1,At1,St1,Ct1,Nt1
+    return tt1,At1,St1,Ct1,Nt1,At2, St2
   
 end
 
@@ -312,16 +323,18 @@ function Startup3(A,S,N,C,tspan1,dn) # batch
     # [tc X_Se_c X_Av_c C_S_c C_NH4_c]
     f(y,p,t)=[dn[2]*y[3]/(y[3]+dn[6])*y[1] - dn[4]*y[1], # X(Av)
               dn[1]*y[4]/(y[4]+dn[5])*y[2] - dn[3]*y[2], # X(Se)
-              dn[1]*dn[9]*y[4]/(y[4]+dn[5])*y[2] + dn[11]*y[2]- dn[2]*dn[8]*y[3]/(y[3]+dn[6])*y[1], # Sucrose
-              dn[2]*dn[10]*y[3]/(y[3]+dn[6])*y[1] + dn[12]*y[1] - dn[1]*dn[7]*y[4]/(y[4]+dn[5])*y[2]] # Ammonia
+              dn[11]*y[2]- dn[2]*dn[8]*y[3]/(y[3]+dn[6])*y[1], # Sucrose
+              dn[12]*y[1] - dn[1]*dn[7]*y[4]/(y[4]+dn[5])*y[2], # Ammonia
+              dn[2]*y[3]/(y[3]+dn[6])*y[1], # measured X(Av) the total amount of dry biomass including live and dead cells
+              dn[1]*y[4]/(y[4]+dn[5])*y[2]] # measured X(Se) 
     
 
-    prob=ODEProblem(f,[A,S,C,N],(0.0,tspan1))
+    prob=ODEProblem(f,[A,S,C,N,A,S],(0.0,tspan1))
     # PositiveDomain(S=nothing;save=true,abstol=nothing,scalefactor=nothing)
     soln=DifferentialEquations.solve(prob,Rosenbrock23())
     a=soln.t
     A=Array(soln)
-    return a,A[1,:],A[2,:],A[3,:],A[4,:]
+    return a,A[1,:],A[2,:],A[3,:],A[4,:], A[5,:],A[6,:]
     # At,St,Ct,Nt
 end
 
@@ -366,86 +379,177 @@ function Tripartite(E,A,S,C,N,P,tspan2,dn) # Use one ODE solver to solve the who
 end
 
 
-# TC = 1/mu_maxS, mumax_Se~(0.01,0.2)
-# N9 = LinRange(1.0, 2.0,11)
-# N10 = LinRange(1.0, 2.0,11)
-# C0 = LinRange(0.48,0.55,8)
-# # X0 = [0.0001 0.001 0.01 0.1 1 10]
-# for i in eachindex(C0)
-#     for j in eachindex(N9)
-#         for k in eachindex(N10)
-#             BicultureGrowth(C0[i],C0[i],0.01,0.01, N9[j], N10[k]; filename = "Region 4 Boundary explore") 
-#         end
+
+# BicultureGrowth(0.2, 0.2, 0.01, 0.01, 0, 0, 0.21, 0.21; filename = "Nongrowthonly_P_steady_0.25_")
+
+# tt1 = [0, 8.944799847, 98.39279831, 992.872783, 2000]
+# At1 = [0.01, 0.01, 0.01, 0.01, 0.01]
+# St1 = [0.01, 0.01, 0.01, 0.01, 0.01]
+# Ct1 = [0.25, 0.25, 0.25, 0.25, 0.25]
+# Nt1 = [0.25, 0.25, 0.25, 0.25, 0.25]
+
+# Plots.plot(tt1,At1,label="A",xaxis="Dimensionless Time",yaxis="Dimensionless Biomass Concentration",framestyle=:box#=, legend=:topleft=#, ylims=[0.0,0.02])
+# Plots.plot!(tt1,St1,label="B")
+
+# # Plots.savefig(out_dir * "Microbial_" * filename * "_XA0_$(@sprintf("%.3f",A0_given))_XB0_$(@sprintf("%.3f",S0_given))_S0_$(@sprintf("%.4f",C0))_N0_$(@sprintf("%.4f",N0))_tc_$(@sprintf("%.2f",c1)) XSec_$(@sprintf("%.2f",c2)) XAvc_$(@sprintf("%.2f",c3)) CSc_$(@sprintf("%.2f",c4)) CAs_$(@sprintf("%.2f",c5)) YsA_$(@sprintf("%.2f",Ys_Av)) YsS_$(@sprintf("%.2f",Ys_Se)) YpA_$(@sprintf("%.2f",Yp_Av)) YpS_$(@sprintf("%.2f",Yp_Se)) N9_$(@sprintf("%.2f",Dimensionless_Numbers[9])) N10_$(@sprintf("%.2f",Dimensionless_Numbers[10])) N11_$(@sprintf("%.2f",Dimensionless_Numbers[11])) N12_$(@sprintf("%.2f",Dimensionless_Numbers[12])).pdf")
+# Plots.savefig(out_dir * "Microbial_" * filename * "_XA0_$(@sprintf("%.3f",A0_given))_XB0_$(@sprintf("%.3f",S0_given))_S0_$(@sprintf("%.6f",C0))_N0_$(@sprintf("%.6f",N0))_N11_$(@sprintf("%.2f",Dimensionless_Numbers[11])) N12_$(@sprintf("%.2f",Dimensionless_Numbers[12])).pdf")
+# Plots.plot(tt1,Ct1,label="B's product",xaxis="Dimensionless Time",yaxis="Dimensionless Nutrient Concentration",framestyle=:box#=, legend=:topleft=#, ylims=[0.15,0.35])
+# Plots.plot!(tt1,Nt1,label="A's product")
+# # Plots.savefig(out_dir * "Nutrient_" * filename * "_XA0_$(@sprintf("%.3f",A0_given))_XB0_$(@sprintf("%.3f",S0_given))_S0_$(@sprintf("%.4f",C0))_N0_$(@sprintf("%.4f",N0))_tc_$(@sprintf("%.2f",c1)) XSec_$(@sprintf("%.2f",c2)) XAvc_$(@sprintf("%.2f",c3)) CSc_$(@sprintf("%.2f",c4)) CAs_$(@sprintf("%.2f",c5)) YsA_$(@sprintf("%.2f",Ys_Av)) YsS_$(@sprintf("%.2f",Ys_Se)) YpA_$(@sprintf("%.2f",Yp_Av)) YpS_$(@sprintf("%.2f",Yp_Se)) N9_$(@sprintf("%.2f",Dimensionless_Numbers[9])) N10_$(@sprintf("%.2f",Dimensionless_Numbers[10])) N11_$(@sprintf("%.2f",Dimensionless_Numbers[11])) N12_$(@sprintf("%.2f",Dimensionless_Numbers[12])).pdf")
+# Plots.savefig(out_dir * "Nutrient_" * filename * "_XA0_$(@sprintf("%.3f",A0_given))_XB0_$(@sprintf("%.3f",S0_given))_S0_$(@sprintf("%.6f",C0))_N0_$(@sprintf("%.6f",N0))_N11_$(@sprintf("%.2f",Dimensionless_Numbers[11])) N12_$(@sprintf("%.2f",Dimensionless_Numbers[12])).pdf")
+
+# 03/31/2025
+# BicultureGrowth(0.25, 0.25, 0.01, 0.01, 0, 0, 0.1, 0.4; filename = "Nongrowthonly_N11_0.1_N12_0.4_")
+
+
+# CA_0 = LinRange(0.1, 1, 10) # Ammonia
+# CB_0 = LinRange(0.1, 1, 10) # Sucrose
+# for k in eachindex(CA_0)
+#     for l in eachindex(CB_0)
+#         BicultureGrowth(CA_0[k], CB_0[l], 0.01, 0.01, 0, 0, 0.2, 0.2; filename = "Nongrowthonly_N11N12equal0.04_")
 #     end
 # end
 
-# Nongrowth associate - N9N10 and N11N12
-# C0 = 1
-# N9 = LinRange(0.1, 1.0, 10)
-# N10 = LinRange(0.1, 1.0, 10)
-# N11 = LinRange(0.1, 1.0, 10)
-# N12 = LinRange(0.1, 1.0, 10)
+# BicultureGrowth(1/9, 0.25, 0.01, 0.01, 0, 0, 0.1, 0.1; filename = "Nongrowthonly_N11N12_0.01_")
 
-# for i in eachindex(N9)
-#     for j in eachindex(N10)
-#         for k in eachindex(N11)
-#             for l in eachindex(N12)
-#                 BicultureGrowth(1,1,0.01,0.01, N9[i], N10[j], N11[k], N12[l]; filename = "N9N10N11N12 exploration") 
-#             end
-#         end
+# CA_0 = LinRange(0.1, 1, 10) # Ammonia
+# CB_0 = LinRange(0.1, 1, 10) # Sucrose
+# for k in eachindex(CA_0)
+#     for l in eachindex(CB_0)
+#         BicultureGrowth(CA_0[k], CB_0[l], 0.01, 0.01, 0, 0, 0.1, 0.1; filename = "Nongrowthonly_N11N12_0.01_")
 #     end
 # end
 
-# 02/17
-# AllGrowth(1,1,0,0.01,0.01,0.01; filename = "Triculture")
+# # N11=N12=0.2
+# sum_PA_0_PB_0_1 = [0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4]
+# xA_steady_1 = [0.01, 0.06, 0.11, 0.16, 0.21, 0.26, 0.31, 0.36, 0.41, 0.46]
 
-# # 02/23
-# N9 = LinRange(0.1, 1.0, 10)
-# N10 = LinRange(0.1, 1.0, 10)
-# N11 = LinRange(0.1, 1.0, 10)
-# N12 = LinRange(0.1, 1.0, 10)
-# for i in eachindex(N9)
-#     for j in eachindex(N10)
-#         for k in eachindex(N11)
-#             for l in eachindex(N12)
-#                 BicultureGrowth(0.1,0.1,0.01,0.01, N9[i], N10[j], N11[k], N12[l]; filename = "N9N10N11N12 exploration") 
-#             end
-#         end
+# # N11=N12=0.1
+# sum_PA_0_PB_0_2 = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4]
+# xA_steady_2 = [0.0294, 0.0794, 0.1294, 0.1794, 0.2294, 0.2794, 0.3294, 0.3794, 0.4294, 0.4794, 0.5294]
+
+# # N11=N12=0.4
+# sum_PA_0_PB_0_3 = [1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6]
+# xA_steady_3 = [0.051666601, 0.101666665, 0.151666632, 0.201666794, 0.251666858, 0.301666922, 0.351666986]
+
+# plot(sum_PA_0_PB_0_1, xA_steady_1, xlabel="PA + PB intial conc. (dimensionless)", ylabel="XA(XB) cell conc. (dimensionless)", label="N11=0.2, N12=0.2, N3=N4=0.2")
+# plot!(sum_PA_0_PB_0_2, xA_steady_2, label="N11=0.1, N12=0.1, N3=N4=0.1")
+# plot!(sum_PA_0_PB_0_3, xA_steady_3, label="N11=0.4, N12=0.4, N3=N4=0.4")
+
+# # 04/03/2025
+# # BicultureGrowth(0.25, 0.25, 0.01, 0.01, 0, 0, 0.1, 0.4; filename = "Nongrowthonly_N11_0.1_N12_0.4_")
+# CA_0 = LinRange(0.1, 1, 10) # Ammonia
+# CB_0 = LinRange(0.1, 1, 10) # Sucrose
+# for k in eachindex(CA_0)
+#     for l in eachindex(CB_0)
+#         BicultureGrowth(CA_0[k], CB_0[l], 0.01, 0.01, 0, 0, 0.4, 0.1; filename = "Nongrowthonly_N11_0.4_N12_0.1_")
 #     end
 # end
 
-# 02/29
-# Sucrose = LinRange(0.001, 0.01, 10)
-# Ammonia = LinRange(0.9, 1.0, 11)
-# N9 = LinRange(1, 1.1, 11)
-# N10 = LinRange(0.2, 2.0, 4)
-# for i in eachindex(Sucrose)
-#     # for j in eachindex(Ammonia)
-#         # for k in eachindex(N9)
-#         #     for l in eachindex(N10)
-#                 BicultureGrowth(1, Sucrose[i], 0.01, 0.01, 1.2, 1, 0,0; filename = "twosubstrate3Dplots")
-#         #     end
-#         # end
-#     # end
-# end
-# N9 = 1.
-# for i in eachindex(N9)
-#     BicultureGrowth(0.1, 1, 0.01, 0.01, N9[i], N9[i], 0, 0; filename = "twosubstrate3Dplots")
-#                     # n0, s0
+# # 04/06/2025
+# BicultureGrowth(0.25, 9/11, 1, 1, 0, 0, 0.3, 0.3; filename = "Nongrowthonly_N11_0.3_N12_0.3_N4_0.45")
+
+# CA_0 = LinRange(0.1, 1, 10) # Ammonia
+# CB_0 = LinRange(0.3, 3, 10) # Sucrose
+# for k in eachindex(CA_0)
+#     for l in eachindex(CB_0)
+#         BicultureGrowth(CA_0[k], CB_0[l], 0.01, 0.01, 0, 0, 0.2, 0.2; filename = "Nongrowthonly_N11_0.2_N12_0.2_N3_0.4_N4_0.1")
+#     end
 # end
 
+# BicultureGrowth(0.25, 1/19, 0.01, 0.01, 0, 0, 0.2, 0.05; filename = "Nongrowthonly_N11_0.2_N12_0.05_N4_0.05")
+# BicultureGrowth(0.25, 1/19, 0.01, 0.01, 0, 0, 0.05, 0.2; filename = "Nongrowthonly_N11_0.05_N12_0.2_N4_0.05")
 
-# 03/25 sampling
-N9 = LinRange(0.1, 1, 10)
-N10 = LinRange(0.1, 1, 10)
-N11 = LinRange(0.1, 1, 10)
-N12 = LinRange(0.1, 1, 10)
-for i in eachindex(N9)
-    for j in eachindex(N10)
-        for k in eachindex(N11)
-            for l in eachindex(N12)
-                BicultureGrowth(0.1, 0.1, 0.01, 0.01, N9[i], N10[j], N11[k], N12[l]; filename = "N9N10N11N12_3Dplots")
-            end
-        end
+# BicultureGrowth(0.25, 0.128, 0.01, 0.01, 0, 0, 0.15, 0.15; filename = "Nongrowthonly_N11_0.15_N12_0.15_N4_0.1125")
+
+# # 04/09/2025
+# # N11 = 0.25, N12 = 0.16
+# CA_0 = LinRange(0.1, 1, 10) # Ammonia
+# CB_0 = LinRange(0.1, 1, 10) # Sucrose
+# for k in eachindex(CA_0)
+#     for l in eachindex(CB_0)
+#         BicultureGrowth(CA_0[k], CB_0[l], 0.01, 0.01, 0, 0, 0.25, 0.16; filename = "Nongrowthonly_N11_0.25_N12_0.16_N3_0.2_N4_0.2")
+#     end
+# end
+
+# # N11 = 0.3, N12 = 4/30
+# CA_0 = LinRange(0.1, 1, 10) # Ammonia
+# CB_0 = LinRange(0.1, 1, 10) # Sucrose
+# for k in eachindex(CA_0)
+#     for l in eachindex(CB_0)
+#         BicultureGrowth(CA_0[k], CB_0[l], 0.01, 0.01, 0, 0, 0.3, 0.133; filename = "Nongrowthonly_N11_0.3_N12_0.133_N3_0.2_N4_0.2")
+#     end
+# end
+
+# # N3 = 0.16, N4 = 0.25
+# CA_0 = LinRange(0.1, 1, 10) # Ammonia
+# CB_0 = LinRange(0.1, 1, 10) # Sucrose
+# for k in eachindex(CA_0)
+#     for l in eachindex(CB_0)
+#         BicultureGrowth(CA_0[k], CB_0[l], 0.01, 0.01, 0, 0, 0.2, 0.2; filename = "Nongrowthonly_N11_0.2_N12_0.2_N3_0.16_N4_0.25")
+#     end
+# end
+
+# # N3 = 4/30, N4 = 0.3
+# CA_0 = LinRange(0.1, 1, 10) # Ammonia
+# CB_0 = LinRange(0.2, 2, 10) # Sucrose
+# for k in eachindex(CA_0)
+#     for l in eachindex(CB_0)
+#         BicultureGrowth(CA_0[k], CB_0[l], 0.01, 0.01, 0, 0, 0.2, 0.2; filename = "Nongrowthonly_N11_0.2_N12_0.2_N3_0.133_N4_0.3")
+#     end
+# end
+
+# 04/10/2025
+# N3 = 0.4, N4 = 0.4, N11=0.4, N12=0.4
+CA_0 = LinRange(0.5, 5, 10) # Ammonia
+CB_0 = LinRange(0.5, 5, 10) # Sucrose
+for k in eachindex(CA_0)
+    for l in eachindex(CB_0)
+        BicultureGrowth(CA_0[k], CB_0[l], 0.01, 0.01, 0, 0, 0.4, 0.4; filename = "Nongrowthonly_N11_0.4_N12_0.4_N3_0.4_N4_0.4")
     end
 end
+
+# N3 = 0.4, N4 = 0.4, N11=0.2, N12=0.8
+CA_0 = LinRange(0.5, 5, 10) # Ammonia
+CB_0 = LinRange(0.5, 5, 10) # Sucrose
+for k in eachindex(CA_0)
+    for l in eachindex(CB_0)
+        BicultureGrowth(CA_0[k], CB_0[l], 0.01, 0.01, 0, 0, 0.2, 0.8; filename = "Nongrowthonly_N11_0.2_N12_0.8_N3_0.4_N4_0.4")
+    end
+end
+
+# N3 = 0.4, N4 = 0.4, N11=0.1, N12=1.6
+CA_0 = LinRange(0.5, 5, 10) # Ammonia
+CB_0 = LinRange(0.5, 5, 10) # Sucrose
+for k in eachindex(CA_0)
+    for l in eachindex(CB_0)
+        BicultureGrowth(CA_0[k], CB_0[l], 0.01, 0.01, 0, 0, 0.1, 1.6; filename = "Nongrowthonly_N11_0.1_N12_1.6_N3_0.4_N4_0.4")
+    end
+end
+
+# N3 = 0.2, N4 = 0.4, N11=0.2, N12=0.4
+CA_0 = LinRange(0.1, 1, 10) # Ammonia
+CB_0 = LinRange(0.5, 5, 10) # Sucrose
+for k in eachindex(CA_0)
+    for l in eachindex(CB_0)
+        BicultureGrowth(CA_0[k], CB_0[l], 0.01, 0.01, 0, 0, 0.2, 0.4; filename = "Nongrowthonly_N11_0.2_N12_0.4_N3_0.2_N4_0.4")
+    end
+end
+
+# N3 = 0.2, N4 = 0.1, N11=0.2, N12=0.1
+CA_0 = LinRange(0.1, 1, 10) # Ammonia
+CB_0 = LinRange(0.1, 1, 10) # Sucrose
+for k in eachindex(CA_0)
+    for l in eachindex(CB_0)
+        BicultureGrowth(CA_0[k], CB_0[l], 0.01, 0.01, 0, 0, 0.2, 0.1; filename = "Nongrowthonly_N11_0.2_N12_0.1_N3_0.2_N4_0.1")
+    end
+end
+
+BicultureGrowth(0.25, 0.25, 0.01, 0.01, 0, 0, 0.25, 0.25; filename = "Nongrowthonly_N11_0.25_N12_0.25_N3_0.2_N4_0.2")
+BicultureGrowth(0.25, 0.25, 0.01, 0.01, 0, 0, 0.15, 0.15; filename = "Nongrowthonly_N11_0.15_N12_0.15_N3_0.2_N4_0.2")
+
+# 04/18/2025
+BicultureGrowth(0.1, 0.1, 0.01, 0.01, 0, 0, 0.21, 0.21; filename = "Nongrowthonly_N11_0.21_N12_0.21_N3_0.2_N4_0.2")
+
+# 04/23/2025
+BicultureGrowth(0.2255, 0.2255, 0.01, 0.01, 0, 0, 0.21, 0.21; filename = "Nongrowthonly_20000h_N11_0.21_N12_0.21_N3_0.2_N4_0.2")
