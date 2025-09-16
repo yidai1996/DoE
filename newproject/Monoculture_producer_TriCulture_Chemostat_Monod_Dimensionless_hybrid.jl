@@ -1,20 +1,12 @@
-# Simulations of Dimensionless ODEs
-# using DifferentialEquations, NLsolve, XLSX, Printf
-
 using Plots
 using DifferentialEquations, NLsolve, XLSX, Printf
 
-# function loadProcessData()
-# function loadProcessData(N9,N10)
-# function loadProcessData(TC)
 function loadProcessData(N9,N10,N11,N12)
     global mu_maxA = 0.11
     global kdA = 0.2*0.11 # 5% of mu_maxA # N4
     global Ks_Av = 5*342.3*10^(-3) # 5mM of sucrose
     global Ys_Av = 1
     global Yp_Av = 2 # alpha_N
-    # global mu_maxS = 0.0217
-    # Assume mu_maxS = mu_maxA for the simplest case
     global mu_maxS = 0.11
     global mu_maxE = 0.2
     global kdS = kdA
@@ -60,20 +52,8 @@ function loadProcessData(N9,N10,N11,N12)
     N4 = tc*kdA
     N5 = Ks_Se/C_NH4_c
     N6 = Ks_Av/C_S_c
-    # N7 = X_Se_c/C_NH4_c/Ys_Se
-    # N8 = X_Av_c/C_S_c/Ys_Av
-    # N9 = Yp_Se*X_Se_c/C_S_c
-    # N10 = Yp_Av*X_Av_c/C_NH4_c
     N7 = 1
     N8 = 1
-    # N9 = 1
-    # N10 = 1
-    # N11 = 0.1
-    # N12 = 0.1
-    # N11 = tc*beta_Se*X_Se_c/C_S_c
-    # N12 = tc*beta_Av*X_Av_c/C_NH4_c
-    # N11 = 0.00
-    # N12 = 0.00
 
     N13 = tc*mu_maxE
     N14 = tc*kdE
@@ -94,51 +74,24 @@ function loadProcessData(N9,N10,N11,N12)
     N29 = tc*mn_Se*X_Se_c/C_NH4_c
     N30 = tc*mn_Ec*X_Ec_c/C_NH4_c
 
-    # global A0 = 0.01
-    # global S0 = 0.01
-    # global tspan1=2000
     global tspan1=2000
     global tspan2=100
-    global out_dir="G:\\My Drive\\Research\\DOE project\\Modeling\\DimensionlessAnalysis\\test0620hybrid\\"
+    global out_dir="" # the file directory where output files are
 
     println("Parameters Loaded!")
     return [tc X_Se_c X_Av_c C_S_c C_NH4_c C_P_c X_Ec_c D_Ec D_Av], [N1 N2 N3 N4 N5 N6 N7 N8 N9 N10 N11 N12 N13 N14 N15 N16 N17 N18 N19 N20 N21 N22 N23 N24 N25 N26 N27 N28 N29 N30]
 end
 
-# function BicultureGrowth(N0, C0; filename = "NotSpecific") # Batch flow
-# function BicultureGrowth(N0, C0, N9, N10; filename = "NotSpecific") # Batch flow
+
 function BicultureGrowth(N0, C0, A0_given, S0_given, N9, N10, N11, N12; filename = "NotSpecific") # Batch flow
-# function BicultureGrowth(N0, C0, A0_given, S0_given, TC; filename = "NotSpecific") # Batch flow
-# function BicultureGrowth(N0, C0, A0_given, S0_given; filename = "BatchBiculture") # Batch flow
-    # Critical_Numbers, Dimensionless_Numbers = loadProcessData()
-    # Critical_Numbers, Dimensionless_Numbers = loadProcessData(N9,N10)
-    # Critical_Numbers, Dimensionless_Numbers = loadProcessData(TC)
     Critical_Numbers, Dimensionless_Numbers = loadProcessData(N9,N10,N11,N12)
     println("Critical Numbers are: ", Critical_Numbers)
     
     Boundaries = Dimensionless_Numbers[9]*Dimensionless_Numbers[10]/Dimensionless_Numbers[7]/Dimensionless_Numbers[8]
     println("Boundaries = ", Boundaries)
-    # if Boundaries != 1.0
-    #     println("Round Dimensionless Numbers!")
-    #     Dimensionless_Numbers[7] = round(X_Se_c/C_NH4_c/Ys_Se, digits = 2)
-    #     Dimensionless_Numbers[8] = round(X_Av_c/C_S_c/Ys_Av, digits = 2)
-    # end
+
     println("Dimensionless Numbers are: ", Dimensionless_Numbers)
-    # global tt1,At1,St1,Ct1,Nt1=Startup1(A0,S0,N0,C0,tspan1,Critical_Numbers)
-    # global tt1,At1,St1,Ct1,Nt1=Startup2(A0_given,S0_given,N0,C0,tspan1,Dimensionless_Numbers)
     global tt1,At1,St1,Ct1,Nt1,At2,St2=Startup3(A0_given,S0_given,N0,C0,tspan1,Dimensionless_Numbers) # At2 and St2 is the measured cell concentration
-    # Startup stage
-    # global dA1dt=zeros(size(tt1)[1])
-    # global dS1dt=zeros(size(tt1)[1])
-    # for i=1:size(tt1)[1]
-    #     dA1dt[i]=(mu_maxA*Ct1[i]/(ksA+Ct1[i]) - kdA)*At1[i]
-    #     # dA1dt[i]=mu_maxA*(KA-At1[i])/KA*At1[i]
-    # end
-    # # println(size(tt1)[1])
-    # for i=1:size(tt1)[1]
-    #     dS1dt[i]=(mu_maxS*Nt1[i]/(ksS+Nt1[i]) - kdS)*St1[i]
-    #     # dS1dt[i]=mu_maxS*(KS-St1[i])/KS*St1[i]
-    # end
     c1 = Critical_Numbers[1]
     c2 = Critical_Numbers[2]
     c3 = Critical_Numbers[3]
@@ -177,7 +130,7 @@ function BicultureGrowth(N0, C0, A0_given, S0_given, N9, N10, N11, N12; filename
   
 end
 
-function AllGrowth(N0,C0,P0,A0_given,S0_given,E0; filename = "Triculture") # Continuous flow
+function AllGrowth(N0,C0,P0,A0_given,S0_given,E0; filename = "Triculture") # Continuous flow for triculture (has not been fully tested)
     tt1, At1, St1, Ct1, Nt1 = BicultureGrowth(N0, C0, A0_given, S0_given; filename = "NotSpecific")
     Critical_Numbers, Dimensionless_Numbers = loadProcessData()
     # Critical_Numbers, Dimensionless_Numbers = loadProcessData(N9,N10,N11,N12)
@@ -190,21 +143,9 @@ function AllGrowth(N0,C0,P0,A0_given,S0_given,E0; filename = "Triculture") # Con
     c9 = Critical_Numbers[9]
     # Incubate E.coli to start triculturing
     global tt,At, St, Et, Ct, Nt, Pt = Tripartite(E0,At1[end],St1[end],Ct1[end],Nt1[end],P0,tspan2,Dimensionless_Numbers)
-    # E,A,S mean E.coli, Av, and Se
-    # global dEdt=zeros(size(tt)[1])
-    # global dAdt=zeros(size(tt)[1])
-    # global dSdt=zeros(size(tt)[1])
-    # global dCdt1=zeros(size(tt)[1])
-    # global dCdt2=zeros(size(tt)[1])
-    # global dCdt3=zeros(size(tt)[1])
-    # global dNdt1=zeros(size(tt)[1])
-    # global dNdt2=zeros(size(tt)[1])
-    # global dNdt3=zeros(size(tt)[1])
-    # global dPdt=zeros(size(tt)[1])
+
     size_t=size(tt)[1]+size(tt1)[1]
-    # global final_dEdt=zeros(size_t)
-    # global final_dAdt=zeros(size_t)
-    # global final_dSdt=zeros(size_t)
+
     global final_Et=zeros(size_t)
     global final_At=zeros(size_t)
     global final_St=zeros(size_t)
@@ -214,45 +155,18 @@ function AllGrowth(N0,C0,P0,A0_given,S0_given,E0; filename = "Triculture") # Con
 
     
     ttt=cat(tt1,tt.+tspan1;dims=(1,1))
-    # println(size(ttt)[1])
-    # dE1dt=zeros(size(tt1)[1])
-    # final_dEdt=cat(dE1dt,dEdt;dims=(1,1))
-    # println(size(ttt))
-    # println(size(final_dEdt))
-    # plot(ttt,final_dEdt,title="Growth rate of E.coli",xaxis="Time(hr)",yaxis="g/L/h",label=false)
-    # savefig("E.coliGrowthRate_test.png")
-
-    # for i=1:size(tt)[1]
-    #     dAdt[i]=(mu_maxA*Ct[i]/(ksA+Ct[i]) - kdA)*At[i] - saioutA*At[i]
-    # end
-    # final_dAdt=cat(dA1dt,dAdt;dims=(1,1))
-    # plot(ttt,final_dAdt,title="Growth rate of Av",xaxis="Time(hr)",yaxis="g/L/h",label=false)
-    # savefig("AvGrowthRate_test.png")
-
   
     final_Et=cat(zeros(size(tt1)[1]),Et;dims=(1,1))
-    # plot(ttt,final_Et,title="E.coli concentration profile",xaxis="Time(hr)",yaxis="OD600",label=false)
-    # savefig("Ecoli_test triculture.png")
 
     final_At=cat(At1,At;dims=(1,1))
-    # plot(ttt,final_At,title="Av concentration profile",xaxis="Time(hr)",yaxis="Av(g/L)",label=false)
-    # savefig("Av_test triculture.png")
 
     final_St=cat(St1,St;dims=(1,1))
-    # plot(ttt,final_St,title="Se concentration profile",xaxis="Time(hr)",yaxis="Se(g/L)",label=false)
-    # savefig("Se_test triculture.png")
-
+ 
     final_Ct=cat(Ct1,Ct;dims=(1,1))
-    # plot(ttt,final_Ct,title="Sucrose concentration profile",xaxis="Time(hr)",yaxis="Sucrose(g/L)",label=false)
-    # savefig("Sucrose_test triculture.png")
 
     final_Nt=cat(Nt1,Nt;dims=(1,1))
-    # plot(ttt,final_Nt,title="Ammonia concentration profile",xaxis="Time(hr)",yaxis="Ammonia(g/L)",label=false)
-    # savefig("Ammonia_test triculture.png")
 
     final_Pt=cat(zeros(size(tt1)[1]),Pt;dims=(1,1))
-    # plot(ttt,final_Pt,title="Product concentration profile",xaxis="Time(hr)",yaxis="Isobutanol(g/L)",label=false)
-    # savefig("Isobutanol_test.png")
 
     # Store data into excel files
     # println("writing plots to files")
@@ -285,43 +199,6 @@ function AllGrowth(N0,C0,P0,A0_given,S0_given,E0; filename = "Triculture") # Con
   
 end
 
-function Startup1(A,S,N,C,tspan1,cr) # batch
-    # Monod Equation
-    # [tc X_Se_c X_Av_c C_S_c C_NH4_c]
-    # Don't use it because it has numerical error: e.g. when X_Se_c=C_S_c, X_Av_c=C_NH4_c, N7*N8=0.999999, which leads to N9*N10/N7/N8>1
-    f(y,p,t)=[cr[1]*mu_maxA*y[3]/(y[3]+Ks_Av/cr[4])*y[1] - cr[1]*kdA*y[1], # X(Av)
-              cr[1]*mu_maxS*y[4]/(y[4]+Ks_Se/cr[5])*y[2] - cr[1]*kdS*y[2], # X(Se)
-              cr[1]*mu_maxS*Yp_Se*cr[2]/cr[4]*y[4]/(y[4]+Ks_Se/cr[5])*y[2] + beta_Se*cr[2]*cr[1]/cr[4]*y[2] - cr[1]*mu_maxA*cr[3]/cr[4]/Ys_Av*y[3]/(y[3]+Ks_Av/cr[4])*y[1], # Sucrose
-              cr[1]*mu_maxA*Yp_Av*cr[3]/cr[5]*y[3]/(y[3]+Ks_Av/cr[4])*y[1] + beta_Av*cr[3]*cr[1]/cr[5]*y[1] - cr[1]*mu_maxS*cr[2]/cr[5]/Ys_Se*y[4]/(y[4]+Ks_Se/cr[5])*y[2]] # Ammonia    
- 
-
-    prob=ODEProblem(f,[A,S,C,N],(0.0,tspan1))
-    # PositiveDomain(S=nothing;save=true,abstol=nothing,scalefactor=nothing)
-    soln=DifferentialEquations.solve(prob,Rosenbrock23())
-    a=soln.t
-    A=Array(soln)
-    return a,A[1,:],A[2,:],A[3,:],A[4,:]
-    # At,St,Ct,Nt
-end
-
-function Startup2(A,S,N,C,tspan1,dn) # batch
-    # Monod Equation
-    # [tc X_Se_c X_Av_c C_S_c C_NH4_c]
-    f(y,p,t)=[dn[2]*y[3]/(y[3]+dn[6])*y[1] - dn[4]*y[1], # X(Av)
-              dn[1]*y[4]/(y[4]+dn[5])*y[2] - dn[3]*y[2], # X(Se)
-              dn[1]*dn[9]*y[4]/(y[4]+dn[5])*y[2] - dn[2]*dn[8]*y[3]/(y[3]+dn[6])*y[1], # Sucrose
-              dn[2]*dn[10]*y[3]/(y[3]+dn[6])*y[1] - dn[1]*dn[7]*y[4]/(y[4]+dn[5])*y[2]] # Ammonia
-    
-
-    prob=ODEProblem(f,[A,S,C,N],(0.0,tspan1))
-    # PositiveDomain(S=nothing;save=true,abstol=nothing,scalefactor=nothing)
-    soln=DifferentialEquations.solve(prob,Rosenbrock23())
-    a=soln.t
-    A=Array(soln)
-    return a,A[1,:],A[2,:],A[3,:],A[4,:]
-    # At,St,Ct,Nt
-end
-
 function Startup3(A,S,N,C,tspan1,dn) # batch
     # Monod Equation
     # Add nongrowth related term
@@ -344,24 +221,6 @@ function Startup3(A,S,N,C,tspan1,dn) # batch
 end
 
 function Tripartite(E,A,S,C,N,P,tspan2,dn) # Use one ODE solver to solve the whole system
-    # D: dilusion rate
-    # E/A/S: e.coli/Ntrigen/Carbon fixer  concentration
-    # With inhibition from isobutanol
-    # f(y,p,t)=[(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1]-D[1]*y[1], # X(E.coli)
-    #      (mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]-D[2]*y[2],# X(Av)
-    #      (mu_maxS*y[5]/(ksS+y[5]) - kdS)*y[3]-D[3]*y[3],# X(Se)
-    #      1/Vt*max(y[4],0)/y[4]*(-(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE + msE)*y[1] - ((mu_maxA*y[4]/(ksA+y[4]) - kdA)/ysxA+msA)*y[2] + yspS*(mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS*y[3]  - sum(D)*y[4]), # Sucrose
-    #      1/Vt*max(y[5],0)/y[5]*(yspA*(mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]/ysxA - (mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE_NH4 + msE_NH4)*y[1] - ((mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS+msS)*y[3] - sum(D)*y[5]), # Ammonia
-    #      1/Vt*(max((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1])*mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])*ysp_g/ysxE + (1-max((mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/(mu_maxE*y[4]*(max(1-y[6]/P_star,0.0))^n/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1])*ysp_m*msE)*y[1] - sum(D)*y[6]] # Product
-
-    # Without inhibition
-    # f(y,p,t)=[(mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1]-D[1]*y[1], # X(E.coli)
-    #      (mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]-D[2]*y[2],# X(Av)
-    #      (mu_maxS*y[5]/(ksS+y[5]) - kdS)*y[3]-D[3]*y[3],# X(Se)
-    #      1/Vt*max(y[4],0)/y[4]*(-(mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE + msE)*y[1] - ((mu_maxA*y[4]/(ksA+y[4]) - kdA)/ysxA+msA)*y[2] + yspS*(mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS*y[3]  - sum(D)*y[4]), # Sucrose
-    #      1/Vt*max(y[5],0)/y[5]*(yspA*(mu_maxA*y[4]/(ksA+y[4]) - kdA)*y[2]/ysxA - (mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])/ysxE_NH4 + msE_NH4)*y[1] - ((mu_maxS*y[5]/(ksS+y[5]) - kdS)/ysxS+msS)*y[3] - sum(D)*y[5]), # Ammonia
-    #      1/Vt*(max((mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/((mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5]) - kdE)*y[1])*mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])*ysp_g/ysxE + (1-max((mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1],0)/((mu_maxE*y[4]/(ksE+y[4])*y[5]/(ksE_NH4+y[5])-kdE)*y[1]))*ysp_m*msE)*y[1] - sum(D)*y[6]] # Product
-
     # Dimensionless ODEs
     # two substrate limited, without inhibition, no maintainace coefficient
     f(y,p,t)=[(dn[2]*y[4]/(y[4]+dn[6])-dn[4]-dn[16])*y[1], # X(Av)
@@ -376,182 +235,9 @@ function Tripartite(E,A,S,C,N,P,tspan2,dn) # Use one ODE solver to solve the who
     soln=DifferentialEquations.solve(prob,Rosenbrock23())
     a=soln.t
     A=Array(soln)
-    # plot(a,A[1,:],title="Microbial concentration profile",xaxis="Time(hr)",yaxis="X(g/L)",label=false)
-    # plot(a,A[2,:],title="Substrate concentration profile",xaxis="Time(hr)",yaxis="S(g/L)",label=false)
-    # plot(a,A[3,:],title="Product concentration profile",xaxis="Time(hr)",yaxis="P(g/L)",label=false)
     return a,A[1,:],A[2,:],A[3,:],A[4,:],A[5,:],A[6,:]
     # Et,At,St,Pt,Ct,Nt
 end
 
-# 05/14
-# CA_0 = LinRange(0.05, 0.2, 4) # Ammonia
-# CB_0 = LinRange(0.05, 0.2, 4) # Sucrose
-# N9 = LinRange(0.1, 1.5, 3)
-# N10 = LinRange(0.1, 0.3, 3)
-# N11 = LinRange(0.1, 0.3, 3)
-# N12 = LinRange(0.1, 0.3, 3)
-# for a in eachindex(CA_0)
-    # for b in eachindex(CB_0)
-        # for c in eachindex(N9)
-        #     for d in eachindex(N10)
-        #         for e in eachindex(N11)
-        #             for f in eachindex(N12)
-        #                 # println("name: ",CA_0[a], " and ", CB_0[b], " and ", N9[c], " and ", N10[d], " and ", N11[e], " and ", N12[f])
-        #                 BicultureGrowth(0.25, 0.25, 0.01, 0.01, N9[c], N10[d], N11[e], N12[f]; filename = "Hybrid_")
-        #             end
-        #         end
-        #     end
-        # end
-    # end
-# end
-# 05/15
-# BicultureGrowth(0.25, 0.25, 0.01, 0.01, 0.9, 0.9, 0.02, 0.02; filename = "Hybrid_")
 
-# tt11 = [0, 2000]
-# At11 = [0.01, 0.01]
-# Na11 = [0.25, 0.25] 
-# plot(tt11,At11,label="A(B)",xaxis="Dimensionless Time",yaxis="Dimensionless Living Concentration", color=:blue, ylims=[0, 0.03], legend=:topright)
-# plot!(twinx(),tt11, Na11, yaxis="Dimensionless Nutrient Concentration", label="AP(BP)",color=:red,ylims=[0.1, 0.5], legend=:topleft)
-
-# 05/15 try to find const a value for X_A steady in the manuscript for nongrowth model
-# BicultureGrowth(0.6, 0.1, 0.03, 0.03, 0, 0, 0.1, 0.4; filename = "nongrowth_const_a_test")
-
-# 05/16
-# BicultureGrowth(0.6, 0.1, 0.01, 0.02, 0, 0, 0.4, 0.1; filename = "nongrowth_const_a_test")
-
-# 06/02
-# BicultureGrowth(0.28, 0.28, 0.01, 0.01, 0.9, 0.9, 0.02, 0.02; filename = "Hybrid_")
-
-# N11=[0.01 0.03]
-# N12=(0.19 .- 4.5*N11)./(4.5.+25*N11)
-# for i in eachindex(N11)
-#     BicultureGrowth(0.4, 0.4, 0.01, 0.01, 0.9, 0.9, N11[i], N12[i]; filename = "Hybrid_")
-# end
-
-# 06/02
-# BicultureGrowth(0.25, 0.25, 0.01, 0.01, 0.5, 0.5, 0.1, 0.1; filename = "Hybrid_")
-
-# 06/10
-# BicultureGrowth(0.5, 0.5, 0.01, 0.01, 0.9, 0.9, 0.03, 0.03; filename = "Hybrid_")
-
-# 06/11 K=0.81 N3=0.2 N9+N11/0.2=0.9 N11=0.1 N9=0.4
-# BicultureGrowth(0.8, 0.8, 0.01, 0.01, 0.4, 0.4, 0.1, 0.1; filename = "Hybrid_")
-# 06/11 K=0.81 N3=0.2 N9+N11/0.2=0.9 N11=0.15 N9=0.15
-# BicultureGrowth(2, 2, 0.01, 0.01, 0.15, 0.15, 0.15, 0.15; filename = "Hybrid_")
-
-# K=1.21 N3=0.2 N9+N11/0.2=1.1 N11=0.1 N9=0.6
-# BicultureGrowth(0.222, 0.2225, 0.01, 0.01, 0.6, 0.6, 0.1, 0.1; filename = "Hybrid_")
-
-# 06/14 N3=0.2 N11=0.2
-# N9=0.8
-# N11=0.04
-# C_0=0.25
-# BicultureGrowth(C_0, C_0, 0.01, 0.01, N9, N9, N11, N11; filename = "Hybrid_")
-
-# 06/20
-CA_0 = [0.01
-0.02
-0.03
-0.04
-0.05
-0.06
-0.07
-0.08
-0.09
-0.1
-0.11
-0.12
-0.13
-0.14
-0.15
-0.16
-0.17
-0.18
-0.19
-0.2]
-N_9 = [0.1
-0.125892541
-0.158489319
-0.199526231
-0.251188643
-0.316227766
-0.398107171
-0.501187234
-0.630957344
-0.794328235
-1
-1.258925412
-1.584893192
-1.995262315
-2.511886432
-3.16227766
-3.981071706
-5.011872336
-6.309573445
-7.943282347
-10
-]
-N_11 = [0.02
-0.025178508
-0.031697864
-0.039905246
-0.050237729
-0.063245553
-0.079621434
-0.100237447
-0.126191469
-0.158865647
-0.2
-0.251785082
-0.316978638
-0.399052463
-0.502377286
-0.632455532
-0.796214341
-1.002374467
-1.261914689
-1.588656469
-2
-]
-
-CA_0 =[0.21
-0.22
-0.23
-0.24
-0.25
-0.26]
-for a in eachindex(CA_0)
-    for b in eachindex(N_9)
-        for c in eachindex(N_11)
-            BicultureGrowth(CA_0[a], CA_0[a], 0.01, 0.01, N_9[b], N_9[b], N_11[c], N_11[c]; filename = "Hybrid_")
-        end
-    end
-end
-
-# 06/24
-n11=[0.02
-0.025178508
-0.031697864
-0.039905246
-0.050237729
-0.063245553
-0.079621434
-0.100237447
-0.126191469
-0.158865647
-0.2
-0.251785082
-0.316978638
-0.399052463
-0.502377286
-0.632455532
-0.796214341
-1.002374467
-1.261914689
-1.588656469
-2
-]
-N_9 = 10
-N_11 = n11[20]
-CA_0 = 0.006
-BicultureGrowth(CA_0, CA_0, 0.01, 0.01, N_9, N_9, N_11, N_11; filename = "Hybrid_")
+BicultureGrowth(0.25, 0.25, 0.01, 0.01, 0, 0, 0.25, 0.25; filename = "Hybrid_")
